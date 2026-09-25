@@ -221,6 +221,13 @@ Acceptance
   structured output handles fixed-shape objects much more reliably than `anyOf` arrays, and
   every page still gets all six blocks. Rate plan prices must be a plain number or a
   `[[PRICE: …]]` placeholder (schema regex).
+- **Drafter limits are generous; target lengths are field descriptions.** Hard `max` limits
+  only reject absurd output (so a slightly long line doesn't fail the draft twice); the model
+  sees "under 60 characters" etc. via `.describe()`, which the Google provider passes on in
+  `responseJsonSchema`. Price placeholders tolerate spacing and case (`[[ price : … ]]`).
+- **No small `maxOutputTokens` for the FAQ**: thinking tokens on Gemini thinking models count
+  towards it and can produce empty answers. The provider defaults Gemini 3 models to
+  `thinkingLevel: 'low'`.
 - **Number guard.** After validation, any number in the draft that doesn't appear in the
   club's facts becomes `[[CHECK: n]]`, so an invented figure can't slip through to publishing.
 - **Drafter sends facts only**: name, status, tier, locality, hours, facilities, facts. No

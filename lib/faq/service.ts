@@ -74,7 +74,9 @@ export async function answerVisitorQuestion(input: FaqRequest, deps: FaqDeps): P
     instructions: FAQ_INSTRUCTIONS,
     prompt: buildFaqPrompt(buildGroundingContext(club, approvedFaqs), question),
     temperature: 0.2,
-    maxOutputTokens: 400,
+    // No small maxOutputTokens: on Gemini "thinking" models the thinking tokens count
+    // towards it and can leave an empty answer. The prompt asks for 2–4 sentences and
+    // the saved answer is length-checked.
     // Quota errors don't clear in seconds; answer with the fallback straight away.
     maxRetries: 0,
   })

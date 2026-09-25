@@ -16,55 +16,80 @@ export const draftRequestSchema = z.object({
 })
 export type DraftRequest = z.infer<typeof draftRequestSchema>
 
-const line = (max: number) => z.string().trim().min(1).max(max)
+// Hard limits are generous so a slightly long line doesn't fail the whole
+// draft; the target lengths go to the model as field descriptions.
+const line = (max: number, guidance?: string) => {
+  const schema = z.string().trim().min(1).max(max)
+  return guidance ? schema.describe(guidance) : schema
+}
 
 /** A plain number from the club's facts, or a [[PRICE: ...]] placeholder. */
 const price = z
   .string()
   .trim()
-  .regex(/^(\d+(\.\d{1,2})?|\[\[PRICE:[^\]]+\]\])$/, {
+  .regex(/^(\d+(\.\d{1,2})?|\[\[\s*PRICE\s*:[^\]]+\]\])$/i, {
     error: 'Use a plain number or a [[PRICE: ...]] placeholder',
   })
+  .describe(
+    'A plain number taken from the club facts, such as "245", or a placeholder such as "[[PRICE: founding monthly membership]]".',
+  )
 
 /**
  * What the model must return: one strict object per block type (the six
  * blocks of docs/SPEC.md §3). The server turns it into the ordered blocks array.
  */
 export const draftOutputSchema = z.strictObject({
-  title: line(100),
-  seo: z.strictObject({ title: line(70), description: line(170) }),
+  title: line(120, 'The page title, usually the club name.'),
+  seo: z.strictObject({
+    title: line(100, 'Search result title, under 60 characters.'),
+    description: line(240, 'Search result description, under 155 characters.'),
+  }),
   hero: z.strictObject({
-    eyebrow: line(80),
-    heading: line(120),
-    subheading: line(320),
-    ctaLabel: line(40),
+    eyebrow: line(100, 'A short label above the heading, under 40 characters.'),
+    heading: line(160, 'The page headline, under eight words.'),
+    subheading: line(500, 'One or two sentences.'),
+    ctaLabel: line(60, 'Button text inviting a tour, two to four words.'),
   }),
-  facilities: z.strictObject({ heading: line(80), intro: line(320) }),
+  facilities: z.strictObject({
+    heading: line(100, 'Under six words.'),
+    intro: line(500, 'One or two sentences.'),
+  }),
   spaRecovery: z.strictObject({
-    eyebrow: line(40),
-    heading: line(80),
-    intro: line(320),
+    eyebrow: line(60, 'A one- or two-word label, for example "The garden".'),
+    heading: line(100, 'Under six words.'),
+    intro: line(500, 'One or two sentences.'),
     items: z
-      .array(z.strictObject({ name: line(60), description: line(260) }))
-      .min(1)
-      .max(4),
-  }),
-  rates: z.strictObject({
-    heading: line(80),
-    plans: z
       .array(
         z.strictObject({
-          name: line(60),
-          pricePerMonth: price,
-          joiningFee: price,
-          inclusions: z.array(line(90)).min(1).max(6),
+          name: line(80, 'A spa or recovery facility from the club facts.'),
+          description: line(400, 'One or two sentences.'),
         }),
       )
       .min(1)
       .max(4),
-    note: line(260),
   }),
-  tourBooking: z.strictObject({ heading: line(80), intro: line(320) }),
-  faq: z.strictObject({ heading: line(80), intro: line(260) }),
+  rates: z.strictObject({
+    heading: line(100, 'Under five words.'),
+    plans: z
+      .array(
+        z.strictObject({
+          name: line(80, 'Membership name.'),
+          pricePerMonth: price,
+          joiningFee: price,
+          inclusions: z.array(line(120, 'A short phrase.')).min(1).max(8),
+        }),
+      )
+      .min(1)
+      .max(4),
+    note: line(400, 'One sentence of small print.'),
+  }),
+  tourBooking: z.strictObject({
+    heading: line(100, 'Under six words.'),
+    intro: line(500, 'One or two sentences.'),
+  }),
+  faq: z.strictObject({
+    heading: line(100, 'Under five words.'),
+    intro: line(400, 'One sentence.'),
+  }),
 })
 export type DraftOutput = z.infer<typeof draftOutputSchema>
