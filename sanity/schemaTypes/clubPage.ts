@@ -1,7 +1,7 @@
 import { DocumentTextIcon } from '@sanity/icons/DocumentText'
 import { defineArrayMember, defineField, defineType } from 'sanity'
-import { findPlaceholders, placeholderSummary } from '../../lib/placeholders'
 import { ClubPageInput } from '../components/ClubPageInput'
+import { placeholderRule } from '../validation'
 import { blockTypeNames } from './blocks'
 import { seoField } from './fields'
 
@@ -12,12 +12,7 @@ export const clubPage = defineType({
   icon: DocumentTextIcon,
   components: { input: ClubPageInput },
   // Publishing is blocked while any [[placeholder]] remains (docs/SPEC.md §6).
-  validation: (rule) =>
-    rule.custom((doc) => {
-      const found = findPlaceholders(doc)
-      if (found.length === 0) return true
-      return `Replace ${found.length} placeholder${found.length === 1 ? '' : 's'} before publishing: ${placeholderSummary(found)}`
-    }),
+  validation: (rule) => rule.custom(placeholderRule),
   fields: [
     defineField({
       name: 'club',

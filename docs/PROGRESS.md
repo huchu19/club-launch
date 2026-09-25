@@ -6,7 +6,7 @@
 - [x] M2 CMS + Mayfair-style page (demo content verified; live Sanity pending checkpoints A/C)
 - [x] M3 Tour booking
 - [x] M4 Infinite FAQ (mock-verified; live Gemini and Studio approval pending checkpoints)
-- [ ] M5 AI page drafter
+- [x] M5 AI page drafter (mock-verified; Studio publish flow pending checkpoints)
 - [ ] M6 Test hardening
 - [ ] M7 Package
 
@@ -97,6 +97,27 @@ Acceptance
   prompt-injection fencing, contact-detail redaction, quota fallback, mid-stream failure
   (fallback appended, nothing saved), unknown club, and route headers/validation/429.
 
+## M5 — AI page drafter
+Plan: `/admin/draft` (basic auth) → `/api/admin/draft`: load the club's facts, structured
+output validated with zod, retry once, create a `drafts.` club page, respond with the
+placeholders and a Studio link. Studio banner + publish-blocking validation for `[[`.
+
+Acceptance
+- [x] A brief for the Moorgate-style club creates a draft page with flagged placeholders —
+  e2e (demo content + `AI_MOCK=1`): the admin picks Linden Moorgate, submits a brief, sees
+  "Nothing has been published", four placeholders with editor-friendly locations and a Studio
+  deep link. Unit tests check the saved document: `drafts.` id, all six blocks in order,
+  placeholders present, valid against the page view model. Creating it in the real Studio
+  needs Sanity credentials (checkpoint A).
+- [ ] Draft can't be published until placeholders are replaced; then publishing makes it live
+  — the document-level rule returns an error (Sanity blocks publishing on validation errors)
+  while any `[[` remains, including a half-deleted `[[DATE`; the banner lists what's left.
+  Unit-tested (`sanity/validation.test.ts`: blocked with placeholders, allowed once replaced).
+  The click-through in Studio needs the live project.
+- [x] Unit test: invalid model output → one retry → clear error — `lib/drafter/service.test.ts`
+  (two invalid replies → `DraftGenerationError` after exactly 2 model calls; invalid then valid
+  → success on attempt 2), plus route tests for 401/400/404/409.
+
 ## Decisions
 - **Versions (checked 25 Sep 2026).** Next 16.3.6, React 19.3, Sanity 6.16, next-sanity 13.3,
   AI SDK 7 (`ai` 7.0, `@ai-sdk/google` 4), zod 4.6, Tailwind 4.3, Storybook 10.6, pnpm 12.6,
@@ -178,6 +199,21 @@ Acceptance
   or the CMS sees them, and the UI asks visitors not to include personal details.
 - **`generateObject` is deprecated in AI SDK 6+**; the drafter uses `generateText` with
   `output: Output.object(...)`. `system` is now `instructions` in AI SDK 7.
+- **Drafter output shape.** The model returns one strict object per block type (`hero`,
+  `facilities`, `spaRecovery`, `rates`, `tourBooking`, `faq`) instead of a free array of a
+  discriminated union; the server builds the ordered `blocks[]` with `_key`s. Gemini's
+  structured output handles fixed-shape objects much more reliably than `anyOf` arrays, and
+  every page still gets all six blocks. Rate plan prices must be a plain number or a
+  `[[PRICE: …]]` placeholder (schema regex).
+- **Number guard.** After validation, any number in the draft that doesn't appear in the
+  club's facts becomes `[[CHECK: n]]`, so an invented figure can't slip through to publishing.
+- **Drafter sends facts only**: name, status, tier, locality, hours, facilities, facts. No
+  phone or street address. `maxRetries: 0` in the SDK; our loop is the single retry.
+- **Admin API checks basic auth itself too** (`requireAdmin`), in case the proxy matcher ever
+  changes. Drafts are rate limited (10 / 10 min) to protect the free Gemini quota.
+- **Demo mode keeps drafted clubs selectable** (demo drafts can't be opened without Studio),
+  so the demo and e2e can run repeatedly. In Sanity mode a club with any page, draft or
+  published, is not offered.
 - **Admin basic auth fails closed**: 503 if `ADMIN_USER`/`ADMIN_PASSWORD` are unset;
   credentials compared in constant time.
 

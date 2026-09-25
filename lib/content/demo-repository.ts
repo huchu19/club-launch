@@ -120,10 +120,9 @@ export const demoRepository: ContentRepository = {
   },
 
   async listClubsWithoutPage() {
-    const withPage = new Set([
-      ...demoPages.map((p) => p.clubId),
-      ...store().drafts.map((d) => d.clubId),
-    ])
+    // Demo drafts live in memory and can't be opened (there is no Studio in demo
+    // mode), so unlike Sanity they don't hide the club: the demo stays repeatable.
+    const withPage = new Set(demoPages.map((p) => p.clubId))
     return demoClubs
       .filter((c) => !withPage.has(c._id))
       .map(({ _id, name, slug }) => ({ _id, name, slug }))

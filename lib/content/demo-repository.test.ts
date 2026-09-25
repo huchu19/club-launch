@@ -18,16 +18,15 @@ describe('demo repository', () => {
     expect(page?.faqs).toHaveLength(5)
   })
 
-  it('lists clubs without a page, and a draft counts as a page', async () => {
-    expect((await demoRepository.listClubsWithoutPage()).map((c) => c.slug)).toEqual([
-      'linden-moorgate',
-    ])
+  it('lists clubs without a published page (demo drafts keep the demo repeatable)', async () => {
+    const slugs = async () => (await demoRepository.listClubsWithoutPage()).map((c) => c.slug)
+    expect(await slugs()).toEqual(['linden-moorgate'])
     await demoRepository.createDraftClubPage({
       clubId: 'club-linden-moorgate',
       title: 'Draft',
       blocks: [],
     })
-    expect(await demoRepository.listClubsWithoutPage()).toEqual([])
+    expect(await slugs()).toEqual(['linden-moorgate'])
   })
 
   it('returns null for unknown markets and clubs', async () => {
