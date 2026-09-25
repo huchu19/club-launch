@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <style>
+    .a { fill: #1e5b43 } .b { stroke: #1e5b43 } .c { stroke: #f8f1e5 }
+    @media (prefers-color-scheme: dark) { .a { fill: #5fb38f } .b { stroke: #5fb38f } .c { stroke: #0c1410 } }
+  </style>
+  <path class="a" d="M5 29V15a11 11 0 0 1 22 0v14z" opacity="0.18"/>
+  <path class="b" d="M5 29V15a11 11 0 0 1 22 0v14" fill="none" stroke-width="2.4" stroke-linecap="round"/>
+  <path class="a" d="M16 27c-5-3.5-5.5-9.5 0-15 5.5 5.5 5 11.5 0 15z"/>
+  <path class="c" d="M16 26V15.5" stroke-width="1.4" stroke-linecap="round"/>
+</svg>

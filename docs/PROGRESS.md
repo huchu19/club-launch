@@ -7,7 +7,7 @@
 - [x] M3 Tour booking
 - [x] M4 Infinite FAQ (mock-verified; live Gemini and Studio approval pending checkpoints)
 - [x] M5 AI page drafter (mock-verified; Studio publish flow pending checkpoints)
-- [ ] M6 Test hardening
+- [x] M6 Test hardening (local + CI-simulated; real CI run pending the GitHub repo)
 - [ ] M7 Package
 
 ## M0 — Setup
@@ -118,6 +118,19 @@ Acceptance
   (two invalid replies → `DraftGenerationError` after exactly 2 model calls; invalid then valid
   → success on attempt 2), plus route tests for 401/400/404/409.
 
+## M6 — Test hardening
+Plan: Playwright with `AI_MOCK=1` for (1) keyboard-only tour booking and (2) asking an FAQ
+question, with axe on the club page in both; `pnpm e2e` in CI (build + start, then run).
+
+Acceptance
+- [x] Both e2e flows pass locally — 8 Playwright tests: tour (keyboard-only, axe on initial,
+  error and success states), accordion keyboard, FAQ (new question, session-only visibility,
+  cache hit, existing answer, refusal, quota fallback, axe), drafter, admin auth.
+- [ ] Full CI pipeline green — every CI step run locally with `CI=1` and the workflow's dummy
+  environment: `format:check`, `lint`, `typecheck`, `test` (100), `build`, `test-storybook`
+  (91), `build-storybook`, `e2e` (8) all pass. The workflow YAML parses (3 jobs). The real run
+  needs the GitHub repo (checkpoint A).
+
 ## Decisions
 - **Versions (checked 25 Sep 2026).** Next 16.3.6, React 19.3, Sanity 6.16, next-sanity 13.3,
   AI SDK 7 (`ai` 7.0, `@ai-sdk/google` 4), zod 4.6, Tailwind 4.3, Storybook 10.6, pnpm 12.6,
@@ -214,6 +227,8 @@ Acceptance
 - **Demo mode keeps drafted clubs selectable** (demo drafts can't be opened without Studio),
   so the demo and e2e can run repeatedly. In Sanity mode a club with any page, draft or
   published, is not offered.
+- **Playwright stops the server with SIGTERM** (`gracefulShutdown`): `next start` runs its
+  server as a detached process, and the default kill left it orphaned on the port.
 - **Admin basic auth fails closed**: 503 if `ADMIN_USER`/`ADMIN_PASSWORD` are unset;
   credentials compared in constant time.
 
