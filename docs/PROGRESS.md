@@ -3,7 +3,7 @@
 ## Milestones
 - [x] M0 Setup (local; CI and Vercel pending checkpoint A)
 - [x] M1 Design system + Storybook (local; Storybook deploy pending checkpoint B)
-- [ ] M2 CMS + Mayfair-style page
+- [x] M2 CMS + Mayfair-style page (demo content verified; live Sanity pending checkpoints A/C)
 - [ ] M3 Tour booking
 - [ ] M4 Infinite FAQ
 - [ ] M5 AI page drafter
@@ -36,6 +36,26 @@ Acceptance
   story tests pass. Verified the gate works: a probe story with an unlabelled button and
   low-contrast text failed (`button-name`, `color-contrast`), then was deleted.
 - [x] CI runs Storybook tests — `storybook` job in `ci.yml` (`test-storybook`, `build-storybook`).
+
+## M2 — CMS + Mayfair-style page
+Plan: schemas with validation (required alt text, placeholder rule); `BlockRenderer`;
+`/[market]/clubs/[slug]` with metadata, canonical, JSON-LD, static params; `/` club index;
+sitemap and robots; signed webhook → `revalidateTag`; draft mode via the Presentation tool;
+idempotent `pnpm seed`.
+
+Acceptance
+- [x] Mayfair-style page renders fully — verified in demo-content mode (`pnpm build && pnpm
+  start`): all six blocks, 200 for the page, 404 for an unknown club, one `<h1>`,
+  `lang="en-GB"`, light/dark and 390 px mobile screenshots checked. The same data is what
+  `pnpm seed` writes to Sanity; rendering it from Sanity needs credentials (checkpoint A).
+- [ ] Studio edit → live within ~10 s without redeploy — implemented (tagged `force-cache`
+  reads, signed webhook calling `revalidateTag(tag, { expire: 0 })`, unit-tested with real
+  Sanity signatures incl. bad signature/payload/missing secret). Needs the webhook (checkpoint C)
+  to verify end to end.
+- [x] JSON-LD validates, sitemap lists the page — `HealthClub` typed with `schema-dts`
+  (compile-time schema.org check) plus unit tests for address, geo and grouped
+  `openingHoursSpecification`; `<` is escaped. `/sitemap.xml` lists `/` and the Mayfair page;
+  `/robots.txt` disallows `/studio`, `/admin`, `/api`.
 
 ## Decisions
 - **Versions (checked 25 Sep 2026).** Next 16.3.6, React 19.3, Sanity 6.16, next-sanity 13.3,
@@ -78,6 +98,18 @@ Acceptance
   phone numbers from Ofcom's drama range.
 - **`next/image` loader**: a global custom loader uses Sanity CDN transforms for Sanity images,
   so the Vercel image-optimisation quota is never used (free tier).
+- **Content repository.** `getContentRepository()` returns the Sanity or demo implementation;
+  pages, API routes and the drafter only talk to the interface. Every Sanity result is parsed
+  with zod into view models (nulls → undefined); a malformed block is dropped and logged rather
+  than breaking the page.
+- **FAQ answers are plain text** (SPEC allows portable text or plain text).
+- **Rate plan prices are strings** holding a plain number ("245") so a draft can hold a
+  `[[PRICE: …]]` placeholder; the schema rejects anything else, and the component formats
+  numbers with the market's locale and currency.
+- **Cache tags**: reads are tagged with every document type they depend on plus `club:<slug>`;
+  the webhook expires the changed document's type and slug. Coarse but correct at this scale.
+- **Club pages get absolute titles** (no "· Club Launch" suffix): the club is the brand there.
+- **Draft mode exit is a POST form** (it changes state), handled by `/api/draft-mode/disable`.
 - **Admin basic auth fails closed**: 503 if `ADMIN_USER`/`ADMIN_PASSWORD` are unset;
   credentials compared in constant time.
 
@@ -86,6 +118,11 @@ Acceptance
   not run. Commits are local on `main`.
 
 ## Human checkpoints
+- **C (after M2):** in sanity.io/manage → API → Webhooks, create a webhook: URL
+  `<site>/api/revalidate`, dataset `production`, trigger on create/update/delete, filter
+  `_type in ["club", "clubPage", "faqItem", "market"]`, projection
+  `{_type, "slug": slug.current, "clubSlug": club->slug.current}`, secret =
+  `SANITY_REVALIDATE_SECRET`, HTTP method POST. Then run `pnpm seed`.
 - **B (after M1):** create a second Vercel project for Storybook (build `pnpm build-storybook`,
   output `storybook-static`).
 - **A (after M0):** create the GitHub repo and push; import into Vercel; add env vars; add the
