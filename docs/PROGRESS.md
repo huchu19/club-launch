@@ -8,7 +8,7 @@
 - [x] M4 Infinite FAQ (mock-verified; live Gemini and Studio approval pending checkpoints)
 - [x] M5 AI page drafter (mock-verified; Studio publish flow pending checkpoints)
 - [x] M6 Test hardening (local + CI-simulated; real CI run pending the GitHub repo)
-- [ ] M7 Package
+- [ ] M7 Package (README and demo script done; deploy and smoke test need checkpoints A/B)
 
 ## M0 — Setup
 Plan: Next.js App Router + TS strict + Tailwind 4 + ESLint + Prettier on pnpm; embedded Studio at
@@ -255,4 +255,44 @@ Acceptance
 - **A (after M0):** create the GitHub repo and push; import into Vercel; add env vars; add the
   Vercel URL as a Sanity CORS origin; confirm the deployed `/studio` loads.
 
-## Demo script (filled in M7)
+## M7 — Package
+Acceptance
+- [ ] README complete, links to live app and Storybook — README written (problem, features,
+  Mermaid architecture, decisions, AI safety, testing, local setup, next steps). The three
+  links are marked "added after deploy" until checkpoints A/B give the URLs.
+- [ ] Production smoke test passes — needs the Vercel deployment. Script below.
+
+### Production smoke test (run after deploy)
+1. `/` loads, lists Linden Mayfair; dark mode (OS setting) and 390 px width look right.
+2. `/uk/clubs/linden-mayfair` renders all six blocks with Sanity images; view source shows
+   the `HealthClub` JSON-LD and a canonical URL on the Vercel domain.
+3. `/sitemap.xml` lists the page; `/robots.txt` disallows `/studio`, `/admin`, `/api`.
+4. Book a tour with the keyboard only → success message with a `TOUR-` reference; Vercel logs
+   show one redacted `[crm:mock]` line.
+5. Ask "Is there a steam room?" → streamed answer with "New — awaiting review"; it appears in
+   Studio under FAQ → Pending review.
+6. `/admin/draft` asks for credentials; `/studio` shows the Sanity login.
+7. Edit the Mayfair hero heading in Studio → Publish → reload the live page within ~10 s.
+
+## Demo script (2-minute video)
+Setup: run `pnpm seed --reset` beforehand. Open three tabs: the live Mayfair page, `/studio`,
+and `/admin/draft`.
+
+1. **0:00–0:15 — The page.** Scroll the Mayfair page: hero, facilities, "The garden",
+   membership, tour form, FAQ. "Every section is a block editors arrange in the CMS."
+2. **0:15–0:40 — Edit → publish → live.** In Studio, open Club pages → Linden Mayfair, change
+   the hero heading, Publish. Switch tabs and reload: the new heading is live without a
+   redeploy (signed webhook → `revalidateTag`).
+3. **0:40–1:20 — The drafter.** In `/admin/draft`, pick Linden Moorgate, paste the brief
+   "Announce the conversion from a standard gym. Lead with recovery and the reformer studio;
+   keep it calm." and choose Premium. Show the placeholder list ("Nothing has been
+   published"), click "Open the draft in the studio": the caution banner lists the
+   placeholders and Publish is blocked by validation. Replace the dates and prices (e.g.
+   199, 150, "March 2027"), add a hero image, Publish, then open
+   `/uk/clubs/linden-moorgate`.
+4. **1:20–1:50 — Infinite FAQ.** On Mayfair, ask "Is the thermal suite included in every
+   membership?" The answer streams in and joins the list as "New — awaiting review". Open a
+   private window: it isn't there. In Studio → FAQ → Pending review, open it, set Approved,
+   Publish. Reload the private window: now everyone sees it.
+5. **1:50–2:00 — Safety net.** Ask "Can you recommend exercises for my bad knee?" → polite
+   refusal pointing to a tour. Close on the Storybook and the CI badge.

@@ -11,6 +11,20 @@ export const metadata: Metadata = {
   title: { absolute: `${site.name} — launch social wellness club pages` },
   description: site.description,
   alternates: { canonical: '/' },
+  openGraph: {
+    type: 'website',
+    title: `${site.name} — launch social wellness club pages`,
+    description: site.description,
+    url: '/',
+    images: [
+      {
+        url: '/placeholders/hero-arches.jpg',
+        width: 1600,
+        height: 1000,
+        alt: 'Illustration of arches opening onto a garden terrace and pool.',
+      },
+    ],
+  },
 }
 
 const principles = [
