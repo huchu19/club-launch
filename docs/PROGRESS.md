@@ -4,7 +4,7 @@
 - [x] M0 Setup (local; CI and Vercel pending checkpoint A)
 - [x] M1 Design system + Storybook (local; Storybook deploy pending checkpoint B)
 - [x] M2 CMS + Mayfair-style page (demo content verified; live Sanity pending checkpoints A/C)
-- [ ] M3 Tour booking
+- [x] M3 Tour booking
 - [ ] M4 Infinite FAQ
 - [ ] M5 AI page drafter
 - [ ] M6 Test hardening
@@ -56,6 +56,23 @@ Acceptance
   (compile-time schema.org check) plus unit tests for address, geo and grouped
   `openingHoursSpecification`; `<` is escaped. `/sitemap.xml` lists `/` and the Mayfair page;
   `/robots.txt` disallows `/studio`, `/admin`, `/api`.
+
+## M3 — Tour booking
+Plan: shared zod schema (client + server), honeypot, 5 / 10 min per-IP limiter, `CrmAdapter`
+with `MockCrmAdapter` chosen by `CRM_ADAPTER`, retry once then a friendly error; accessible
+field errors, error summary, success state, input kept on failure.
+
+Acceptance
+- [x] Valid submission shows success; invalid shows field errors; keyboard-only works —
+  Playwright `e2e/tour.spec.ts` drives the real production build with the keyboard only
+  (Tab to the hero CTA → Enter → submit empty → error summary gets focus → summary link focuses
+  the field → fill → Space on consent → Enter), plus axe WCAG 2.2 AA scans of the page, the
+  error state and the success state. Storybook tests cover the same states in isolation.
+- [x] Unit tests cover validation, retry and rate limiting — `lib/tour/schema.test.ts`,
+  `lib/crm/adapter.test.ts` (success, one retry, give up after retry, redacted log),
+  `lib/rate-limit.test.ts` (limit, sliding window, per key, eviction) and
+  `app/api/tour/route.test.ts` (400 field errors, 413, honeypot, 404 club, 502 after retry,
+  429 with Retry-After on the sixth request).
 
 ## Decisions
 - **Versions (checked 25 Sep 2026).** Next 16.3.6, React 19.3, Sanity 6.16, next-sanity 13.3,
@@ -110,6 +127,16 @@ Acceptance
   the webhook expires the changed document's type and slug. Coarse but correct at this scale.
 - **Club pages get absolute titles** (no "· Club Launch" suffix): the club is the brand there.
 - **Draft mode exit is a POST form** (it changes state), handled by `/api/draft-mode/disable`.
+- **Rate limiting is in memory, per instance** (documented in `lib/rate-limit.ts`): on
+  serverless each warm instance has its own window, so the effective limit is higher. Bounded
+  to 10,000 keys with least-recently-used eviction.
+- **Honeypot hits get a fake success** (a real-looking reference) and are never sent to the
+  CRM, so bots learn nothing.
+- **The mock CRM logs one redacted line** (reference, club, date, slot, whether a phone was
+  given): never name, email or phone.
+- **Tour dates** are limited to today (London time) up to 90 days ahead.
+- **e2e sets the date field with `fill()`** after reaching it by Tab: headless Chromium's date
+  segment order doesn't follow the page locale, so typed digits are platform-dependent.
 - **Admin basic auth fails closed**: 503 if `ADMIN_USER`/`ADMIN_PASSWORD` are unset;
   credentials compared in constant time.
 

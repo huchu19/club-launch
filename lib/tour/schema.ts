@@ -41,12 +41,12 @@ export function createTourRequestSchema(today: string = todayIso()) {
       .max(100)
       .regex(/^[a-z0-9-]+$/),
     name: z
-      .string()
+      .string({ error: 'Enter your name' })
       .trim()
       .min(1, { error: 'Enter your name' })
       .max(100, { error: 'Name must be 100 characters or fewer' }),
     email: z
-      .string()
+      .string({ error: 'Enter your email address' })
       .trim()
       .min(1, { error: 'Enter your email address' })
       .max(254, { error: 'Email address must be 254 characters or fewer' })
@@ -54,7 +54,7 @@ export function createTourRequestSchema(today: string = todayIso()) {
         z.email({ error: 'Enter an email address in the correct format, like name@example.com' }),
       ),
     phone: z
-      .string()
+      .string({ error: 'Enter a phone number using digits, spaces, brackets and + only' })
       .trim()
       .max(30, { error: 'Phone number must be 30 characters or fewer' })
       .regex(/^[+\d\s()-]*$/, {
@@ -62,7 +62,7 @@ export function createTourRequestSchema(today: string = todayIso()) {
       })
       .optional(),
     preferredDate: z
-      .string()
+      .string({ error: 'Enter a preferred date' })
       .min(1, { error: 'Enter a preferred date' })
       .regex(/^\d{4}-\d{2}-\d{2}$/, { error: 'Enter a real date' })
       .refine(isRealDate, { error: 'Enter a real date' })
