@@ -93,6 +93,7 @@ export const sanityRepository: ContentRepository = {
 
   async createPendingFaq(input) {
     const doc = await getWriteClient().create({
+      _id: input.id,
       _type: 'faqItem',
       club: { _type: 'reference', _ref: input.clubId },
       question: input.question,

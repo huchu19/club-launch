@@ -17,6 +17,8 @@ export type FaqMatch = {
 }
 
 export type NewPendingFaq = {
+  /** Chosen up front so the id can be sent to the visitor before the answer is saved. */
+  id: string
   clubId: string
   question: string
   answer: string

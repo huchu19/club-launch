@@ -22,6 +22,8 @@ export default defineConfig({
     url: `http://localhost:${PORT}`,
     reuseExistingServer: !process.env.CI,
     timeout: 300_000,
+    // SIGTERM lets `next start` stop its detached server process too.
+    gracefulShutdown: { signal: 'SIGTERM', timeout: 5_000 },
     env: {
       AI_MOCK: '1',
       CONTENT_MOCK: '1',

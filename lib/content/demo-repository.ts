@@ -106,7 +106,7 @@ export const demoRepository: ContentRepository = {
   },
 
   async createPendingFaq(input) {
-    const id = `faq-demo-${crypto.randomUUID()}`
+    const id = input.id
     store().faqs.push({
       _id: id,
       clubId: input.clubId,

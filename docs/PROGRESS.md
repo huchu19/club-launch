@@ -5,7 +5,7 @@
 - [x] M1 Design system + Storybook (local; Storybook deploy pending checkpoint B)
 - [x] M2 CMS + Mayfair-style page (demo content verified; live Sanity pending checkpoints A/C)
 - [x] M3 Tour booking
-- [ ] M4 Infinite FAQ
+- [x] M4 Infinite FAQ (mock-verified; live Gemini and Studio approval pending checkpoints)
 - [ ] M5 AI page drafter
 - [ ] M6 Test hardening
 - [ ] M7 Package
@@ -74,6 +74,29 @@ Acceptance
   `app/api/tour/route.test.ts` (400 field errors, 413, honeypot, 404 club, 502 after retry,
   429 with Retry-After on the sixth request).
 
+## M4 — Infinite FAQ
+Plan: `faqBlock` accordion + "Anything else?" streaming UI; `/api/faq` per SPEC §5 (validate,
+10 / 10 min limit, normalised-question cache, club-only grounding, refusals, pending save,
+quota fallback); `AI_MOCK=1` fixtures for an in-context answer, a refusal and a quota error.
+
+Acceptance
+- [x] New question streams an answer and adds a pending item visible only to the asker —
+  e2e: asked by keyboard, answer streams, item joins the list open with "New — awaiting
+  review", survives a reload in that session, and a second browser context doesn't see it.
+- [x] Repeating the same question does not call Gemini — unit test asserts the model's
+  `doStreamCalls` stays at 1 for a re-worded repeat; e2e asserts `X-Faq-Source: cache` for the
+  second visitor. Approved questions are served from the CMS and bump `askedCount`.
+- [ ] Approving in Studio makes it visible to everyone — implemented (page query only
+  includes `status == "approved"`; the `faqItem` webhook expires the page's cache tag). Needs
+  the live Sanity project + webhook (checkpoints A, C) to verify end to end.
+- [x] Off-topic / medical / unknown-price questions get the polite refusal — mock fixtures
+  unit-tested (medical, off-topic, unlisted price refused; listed price answered) and e2e.
+  The real model gets the same rules in `FAQ_INSTRUCTIONS` (not yet tried against Gemini: no
+  API key available to me).
+- [x] Unit tests for normalisation, grounding context builder, refusal path (mocked) — plus
+  prompt-injection fencing, contact-detail redaction, quota fallback, mid-stream failure
+  (fallback appended, nothing saved), unknown club, and route headers/validation/429.
+
 ## Decisions
 - **Versions (checked 25 Sep 2026).** Next 16.3.6, React 19.3, Sanity 6.16, next-sanity 13.3,
   AI SDK 7 (`ai` 7.0, `@ai-sdk/google` 4), zod 4.6, Tailwind 4.3, Storybook 10.6, pnpm 12.6,
@@ -137,10 +160,33 @@ Acceptance
 - **Tour dates** are limited to today (London time) up to 90 days ahead.
 - **e2e sets the date field with `fill()`** after reaching it by Tab: headless Chromium's date
   segment order doesn't follow the page locale, so typed digits are platform-dependent.
+- **FAQ streaming protocol**: `text/plain` stream plus headers `X-Faq-Status`
+  (`approved` | `pending` | `fallback`), `X-Faq-Source` (`cache` | `model` | `fallback`) and
+  `X-Faq-Id`, read with a small `fetch` reader. Chosen over `useCompletion` because the client
+  needs response metadata before the body. The pending item's id is generated up front so it
+  can be sent in the headers; it is only saved once the full answer has streamed and
+  validated, before the response closes (so serverless doesn't cut the save off).
+- **The server waits for the model's first token** before choosing the response, so quota and
+  API errors become a clean fallback (nothing saved). `maxRetries: 0` for the FAQ: quota
+  errors don't clear in seconds.
+- **AI mocks run through the real SDK** (`MockLanguageModelV4` from `ai/test`), so
+  `AI_MOCK=1` exercises the same `streamText` / structured-output code as production. Ask a
+  question containing "quota" to trigger the quota fixture.
+- **Refusals are saved as pending**, as SPEC §5 says: editors see what visitors want to know
+  and can reject or answer them.
+- **Contact details are redacted from questions** (emails, phone numbers) before the model
+  or the CMS sees them, and the UI asks visitors not to include personal details.
+- **`generateObject` is deprecated in AI SDK 6+**; the drafter uses `generateText` with
+  `output: Output.object(...)`. `system` is now `instructions` in AI SDK 7.
 - **Admin basic auth fails closed**: 503 if `ADMIN_USER`/`ADMIN_PASSWORD` are unset;
   credentials compared in constant time.
 
 ## Known issues
+- Real Gemini behaviour (answer quality, refusal wording, structured output of the drafter)
+  is untested: there is no API key in this environment. Everything runs against the
+  deterministic mocks until `GOOGLE_GENERATIVE_AI_API_KEY` is set and `AI_MOCK=0`.
+- A model failure mid-answer shows the partial answer plus the fallback line, labelled
+  pending in the asker's session, although it is not saved.
 - GitHub repo `huchu19/club-launch` does not exist yet, so nothing has been pushed and CI has
   not run. Commits are local on `main`.
 
