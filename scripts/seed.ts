@@ -9,17 +9,9 @@
 import { createReadStream, existsSync } from 'node:fs'
 import path from 'node:path'
 import { createClient } from '@sanity/client'
-import {
-  demoClubs,
-  demoFaqs,
-  demoImages,
-  demoMarket,
-  demoPages,
-  MOORGATE_ID,
-} from '../lib/content/demo-data'
-import { arrayKey, stripUndefined, toSanityBlocks } from '../lib/content/to-sanity'
-import type { Club, ImageData } from '../lib/content/types'
-import { normalizeQuestion } from '../lib/faq/normalize'
+import { demoClubs, demoFaqs, demoImages, demoPages, MOORGATE_ID } from '../lib/content/demo-data'
+import { buildSeedDocuments } from '../lib/content/seed-documents'
+import type { ImageData } from '../lib/content/types'
 
 // Loads variables from .env.local without printing them.
 if (existsSync('.env.local')) process.loadEnvFile('.env.local')
@@ -45,9 +37,6 @@ const client = createClient({
   perspective: 'raw',
 })
 
-const MARKET_ID = `market-${demoMarket.code}`
-const ref = (id: string) => ({ _type: 'reference' as const, _ref: id })
-
 async function uploadImages(): Promise<Map<string, string>> {
   const assets = new Map<string, string>()
   for (const image of Object.values(demoImages)) {
@@ -59,29 +48,6 @@ async function uploadImages(): Promise<Map<string, string>> {
     console.log(`  image  ${path.basename(file)} → ${asset._id}`)
   }
   return assets
-}
-
-function clubDocument(club: Club) {
-  return stripUndefined({
-    _id: club._id,
-    _type: 'club',
-    name: club.name,
-    slug: { _type: 'slug', current: club.slug },
-    market: ref(MARKET_ID),
-    tier: club.tier,
-    status: club.status,
-    address: club.address,
-    geo: club.geo ? { _type: 'geopoint', lat: club.geo.lat, lng: club.geo.lng } : undefined,
-    openingHours: club.openingHours.map((h) => ({
-      _key: arrayKey(),
-      _type: 'openingHoursEntry',
-      ...h,
-    })),
-    phone: club.phone,
-    facilities: club.facilities.map((f) => ({ _key: arrayKey(), _type: 'facility', ...f })),
-    facts: club.facts.map((f) => ({ _key: arrayKey(), _type: 'fact', ...f })),
-    seo: club.seo,
-  })
 }
 
 async function main() {
@@ -99,35 +65,17 @@ async function main() {
   const assets = await uploadImages()
   const resolveImage = (image: ImageData) => {
     const assetId = assets.get(image.url)
-    return assetId ? { _type: 'image' as const, asset: ref(assetId), alt: image.alt } : undefined
+    return assetId
+      ? {
+          _type: 'image' as const,
+          asset: { _type: 'reference' as const, _ref: assetId },
+          alt: image.alt,
+        }
+      : undefined
   }
 
   const tx = client.transaction()
-  tx.createOrReplace({ _id: MARKET_ID, _type: 'market', ...demoMarket })
-  for (const club of demoClubs) tx.createOrReplace(clubDocument(club))
-  for (const page of demoPages) {
-    tx.createOrReplace({
-      _id: page._id,
-      _type: 'clubPage',
-      club: ref(page.clubId),
-      title: page.title,
-      seo: page.seo,
-      blocks: toSanityBlocks(page.blocks, resolveImage),
-    })
-  }
-  for (const faq of demoFaqs) {
-    tx.createOrReplace({
-      _id: faq._id,
-      _type: 'faqItem',
-      club: ref(faq.clubId),
-      question: faq.question,
-      answer: faq.answer,
-      status: faq.status,
-      source: faq.source,
-      askedCount: faq.askedCount,
-      normalizedQuestion: normalizeQuestion(faq.question),
-    })
-  }
+  for (const doc of buildSeedDocuments(resolveImage)) tx.createOrReplace(doc)
   const result = await tx.commit()
   console.log(
     `  wrote  ${result.results.length} documents (1 market, ${demoClubs.length} clubs, ${demoPages.length} page, ${demoFaqs.length} FAQs)`,

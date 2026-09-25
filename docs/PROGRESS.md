@@ -48,6 +48,9 @@ Acceptance
   start`): all six blocks, 200 for the page, 404 for an unknown club, one `<h1>`,
   `lang="en-GB"`, light/dark and 390 px mobile screenshots checked. The same data is what
   `pnpm seed` writes to Sanity; rendering it from Sanity needs credentials (checkpoint A).
+- [x] Sanity read path verified offline — `lib/sanity/queries.test.ts` runs every GROQ query
+  with `groq-js` (Sanity's engine) over exactly the documents `pnpm seed` writes and parses the
+  results with the page view models; `sanity schema validate`: 0 errors, 0 warnings.
 - [ ] Studio edit → live within ~10 s without redeploy — implemented (tagged `force-cache`
   reads, signed webhook calling `revalidateTag(tag, { expire: 0 })`, unit-tested with real
   Sanity signatures incl. bad signature/payload/missing secret). Needs the webhook (checkpoint C)
