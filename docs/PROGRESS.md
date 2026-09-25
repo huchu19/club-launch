@@ -1,13 +1,13 @@
 # PROGRESS
 
 ## Milestones
-- [x] M0 Setup (local; CI and Vercel pending checkpoint A)
+- [x] M0 Setup (CI green on GitHub; Vercel pending checkpoint A)
 - [x] M1 Design system + Storybook (local; Storybook deploy pending checkpoint B)
 - [x] M2 CMS + Mayfair-style page (demo content verified; live Sanity pending checkpoints A/C)
 - [x] M3 Tour booking
 - [x] M4 Infinite FAQ (mock-verified; live Gemini and Studio approval pending checkpoints)
 - [x] M5 AI page drafter (mock-verified; Studio publish flow pending checkpoints)
-- [x] M6 Test hardening (local + CI-simulated; real CI run pending the GitHub repo)
+- [x] M6 Test hardening
 - [ ] M7 Package (README and demo script done; deploy and smoke test need checkpoints A/B)
 
 ## M0 — Setup
@@ -20,7 +20,8 @@ Acceptance
   screenshot: the Studio bundle boots and talks to Sanity (a dummy project id shows Sanity's
   "Project not found", so a real id will show the login screen). `/admin/draft` returns 503
   when `ADMIN_PASSWORD` is unset (fails closed), 401 without credentials.
-- [ ] CI passes on push — workflow written; blocked until the GitHub repo exists (see Known issues).
+- [x] CI passes on push — first run on github.com/huchu19/club-launch (run 36202847146): all
+  three jobs green.
 
 ## M1 — Design system + Storybook
 Plan: tokens as CSS variables in Tailwind 4 `@theme` (light) with dark overrides via
@@ -126,13 +127,12 @@ Plan: Playwright with `AI_MOCK=1` for (1) keyboard-only tour booking and (2) ask
 question, with axe on the club page in both; `pnpm e2e` in CI (build + start, then run).
 
 Acceptance
-- [x] Both e2e flows pass locally — 8 Playwright tests: tour (keyboard-only, axe on initial,
+- [x] Both e2e flows pass locally and in CI — 8 Playwright tests: tour (keyboard-only, axe on initial,
   error and success states), accordion keyboard, FAQ (new question, session-only visibility,
   cache hit, existing answer, refusal, quota fallback, axe), drafter, admin auth.
-- [ ] Full CI pipeline green — every CI step run locally with `CI=1` and the workflow's dummy
-  environment: `format:check`, `lint`, `typecheck`, `test` (100), `build`, `test-storybook`
-  (91), `build-storybook`, `e2e` (8) all pass. The workflow YAML parses (3 jobs). The real run
-  needs the GitHub repo (checkpoint A).
+- [x] Full CI pipeline green — GitHub Actions run 36202847146: "Lint, typecheck, test,
+  build", "Storybook build and component tests (incl. a11y)" and "End-to-end (Playwright +
+  axe)" all succeeded.
 
 ## Decisions
 - **Versions (checked 25 Sep 2026).** Next 16.3.6, React 19.3, Sanity 6.16, next-sanity 13.3,
@@ -248,8 +248,6 @@ Acceptance
   deterministic mocks until `GOOGLE_GENERATIVE_AI_API_KEY` is set and `AI_MOCK=0`.
 - A model failure mid-answer shows the partial answer plus the fallback line, labelled
   pending in the asker's session, although it is not saved.
-- GitHub repo `huchu19/club-launch` does not exist yet, so nothing has been pushed and CI has
-  not run. Commits are local on `main`.
 
 ## Human checkpoints
 - **C (after M2):** in sanity.io/manage → API → Webhooks, create a webhook: URL
