@@ -212,12 +212,28 @@ export const publicFaqSchema = z.object({
 })
 export type PublicFaq = z.infer<typeof publicFaqSchema>
 
+/**
+ * A malformed or unknown block is dropped (and logged) rather than taking the
+ * whole page down: editors may be mid-way through adding a new block type.
+ */
+const lenientBlocks = z
+  .preprocess((v) => v ?? [], z.array(z.unknown()))
+  .transform((items) =>
+    items.flatMap((item) => {
+      const parsed = pageBlockSchema.safeParse(item)
+      if (parsed.success) return [parsed.data]
+      const type = (item as { _type?: unknown } | null)?._type
+      console.warn(`Skipping invalid block "${String(type)}": ${parsed.error.issues[0]?.message}`)
+      return []
+    }),
+  )
+
 export const clubPageSchema = z.object({
   _id: z.string(),
   title: z.string(),
   seo: opt(seoSchema),
   club: clubSchema,
-  blocks: list(pageBlockSchema),
+  blocks: lenientBlocks,
   faqs: list(publicFaqSchema),
 })
 export type ClubPageData = z.infer<typeof clubPageSchema>

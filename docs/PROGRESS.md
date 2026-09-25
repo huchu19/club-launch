@@ -2,7 +2,7 @@
 
 ## Milestones
 - [x] M0 Setup (local; CI and Vercel pending checkpoint A)
-- [ ] M1 Design system + Storybook
+- [x] M1 Design system + Storybook (local; Storybook deploy pending checkpoint B)
 - [ ] M2 CMS + Mayfair-style page
 - [ ] M3 Tour booking
 - [ ] M4 Infinite FAQ
@@ -21,6 +21,21 @@ Acceptance
   "Project not found", so a real id will show the login screen). `/admin/draft` returns 503
   when `ADMIN_PASSWORD` is unset (fails closed), 401 without credentials.
 - [ ] CI passes on push — workflow written; blocked until the GitHub repo exists (see Known issues).
+
+## M1 — Design system + Storybook
+Plan: tokens as CSS variables in Tailwind 4 `@theme` (light) with dark overrides via
+`prefers-color-scheme` and `data-theme`; base components; the six blocks as presentational
+components with typed props; Storybook 10 (`@storybook/nextjs-vite`) with a11y, a theme toolbar
+and mobile viewport; Storybook tests via the Vitest addon in CI.
+
+Acceptance
+- [x] Every component has stories; `pnpm build-storybook` succeeds — 15 story files (9 UI, 6
+  blocks), each with default, dark, mobile and edge cases (long text, missing image, empty
+  lists, draft placeholders, validation errors, server failure, streaming FAQ answer, fallback).
+- [x] Zero serious/critical a11y violations — `parameters.a11y.test = 'error'` globally; all 80
+  story tests pass. Verified the gate works: a probe story with an unlabelled button and
+  low-contrast text failed (`button-name`, `color-contrast`), then was deleted.
+- [x] CI runs Storybook tests — `storybook` job in `ci.yml` (`test-storybook`, `build-storybook`).
 
 ## Decisions
 - **Versions (checked 25 Sep 2026).** Next 16.3.6, React 19.3, Sanity 6.16, next-sanity 13.3,
@@ -50,6 +65,19 @@ Acceptance
 - **Contrast (WCAG AA) of token pairs**, light / dark: ink on canvas 12.8 / 16.5; muted on
   canvas 5.3 / 8.3; muted on raised 4.7 / 7.1; brand on canvas 7.1 / 7.4; on-brand on brand
   8.0 / 7.4; input border (line-strong) on surface 4.0 / 3.9 (≥ 3:1 non-text).
+- **Accordion uses native `<details>/<summary>`**: keyboard operable and announced as
+  expandable with no JavaScript, so the approved FAQ list works before hydration.
+- **Transports are injectable.** `TourForm` takes `submit`, `FaqQuestions` takes `ask`
+  (defaults: `POST /api/tour`, `POST /api/faq`), so stories and interaction tests run without
+  a server. Server components never pass functions, so defaults apply in the app.
+- **Pending FAQ answers live in `sessionStorage`**, read through `useSyncExternalStore` (no
+  hydration mismatch). Visible only to the asker, only in that tab session.
+- **Placeholder imagery** is flat cut-paper SVG art in the portfolio palette
+  (`design/placeholders`), rendered to JPEG by `scripts/render-placeholders.ts`, so it works
+  with Sanity's image CDN after seeding. Fictional operator "Linden" (Mayfair, Moorgate);
+  phone numbers from Ofcom's drama range.
+- **`next/image` loader**: a global custom loader uses Sanity CDN transforms for Sanity images,
+  so the Vercel image-optimisation quota is never used (free tier).
 - **Admin basic auth fails closed**: 503 if `ADMIN_USER`/`ADMIN_PASSWORD` are unset;
   credentials compared in constant time.
 
@@ -58,6 +86,8 @@ Acceptance
   not run. Commits are local on `main`.
 
 ## Human checkpoints
+- **B (after M1):** create a second Vercel project for Storybook (build `pnpm build-storybook`,
+  output `storybook-static`).
 - **A (after M0):** create the GitHub repo and push; import into Vercel; add env vars; add the
   Vercel URL as a Sanity CORS origin; confirm the deployed `/studio` loads.
 

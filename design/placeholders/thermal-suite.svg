@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900">
+  <defs>
+    <linearGradient id="warm" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#e6cdb2"/>
+      <stop offset="1" stop-color="#f3e7d6"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="900" fill="url(#warm)"/>
+  <g fill="#b98a66">
+    <rect x="80" y="0" width="70" height="620"/>
+    <rect x="170" y="0" width="70" height="620"/>
+    <rect x="260" y="0" width="70" height="620"/>
+    <rect x="350" y="0" width="70" height="620"/>
+    <rect x="440" y="0" width="70" height="620"/>
+    <rect x="530" y="0" width="70" height="620"/>
+  </g>
+  <g fill="#a3714f" opacity="0.55">
+    <rect x="80" y="0" width="12" height="620"/>
+    <rect x="170" y="0" width="12" height="620"/>
+    <rect x="260" y="0" width="12" height="620"/>
+    <rect x="350" y="0" width="12" height="620"/>
+    <rect x="440" y="0" width="12" height="620"/>
+    <rect x="530" y="0" width="12" height="620"/>
+  </g>
+  <rect x="40" y="560" width="620" height="44" rx="6" fill="#8a5738"/>
+  <rect x="40" y="604" width="620" height="16" fill="#302923" opacity="0.14"/>
+  <g fill="none" stroke="#fffaf2" stroke-linecap="round" stroke-width="16" opacity="0.55">
+    <path d="M760 520c-60-70 60-110 0-190s50-120 0-200"/>
+    <path d="M880 560c-60-70 60-110 0-190s50-120 0-200"/>
+    <path d="M1000 520c-60-70 60-110 0-190s50-120 0-200"/>
+  </g>
+  <rect x="0" y="700" width="1200" height="200" fill="#d8c3a7"/>
+  <g>
+    <ellipse cx="880" cy="760" rx="210" ry="46" fill="#302923" opacity="0.14"/>
+    <ellipse cx="880" cy="730" rx="190" ry="60" fill="#7d6a5c"/>
+    <ellipse cx="860" cy="660" rx="140" ry="50" fill="#8f7b6b"/>
+    <ellipse cx="890" cy="600" rx="96" ry="38" fill="#a38f7e"/>
+    <ellipse cx="872" cy="552" rx="56" ry="24" fill="#b7a391"/>
+  </g>
+  <circle cx="1080" cy="140" r="54" fill="#c76345" opacity="0.8"/>
+</svg>

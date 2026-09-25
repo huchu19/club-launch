@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#aebfc6"/>
+      <stop offset="0.55" stop-color="#dcd9c8"/>
+      <stop offset="1" stop-color="#efe5d2"/>
+    </linearGradient>
+    <linearGradient id="water" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#8fb0b9"/>
+      <stop offset="1" stop-color="#6f95a3"/>
+    </linearGradient>
+    <clipPath id="arches">
+      <path d="M145 900V365a185 185 0 0 1 370 0v535zM615 900V365a185 185 0 0 1 370 0v535zM1085 900V365a185 185 0 0 1 370 0v535z"/>
+    </clipPath>
+  </defs>
+  <rect width="1600" height="1000" fill="#eee4d2"/>
+  <g clip-path="url(#arches)">
+    <rect width="1600" height="1000" fill="url(#sky)"/>
+    <circle cx="1210" cy="330" r="64" fill="#f8f1e5" opacity="0.85"/>
+    <path d="M0 640c180-60 360-70 560-40s420 10 620-40 300-10 420 20v420H0z" fill="#a9b7a1"/>
+    <path d="M0 700c220-50 420-30 640-10s460-20 620-40 240 10 340 30v360H0z" fill="#789078"/>
+    <g fill="#52745f">
+      <ellipse cx="240" cy="640" rx="70" ry="120"/>
+      <ellipse cx="330" cy="668" rx="52" ry="90"/>
+      <ellipse cx="1330" cy="630" rx="80" ry="140"/>
+      <ellipse cx="1420" cy="672" rx="50" ry="92"/>
+    </g>
+    <g fill="#1e5b43">
+      <ellipse cx="760" cy="690" rx="46" ry="96"/>
+      <ellipse cx="840" cy="700" rx="36" ry="72"/>
+    </g>
+    <rect x="0" y="770" width="1600" height="130" fill="#d8c6ab"/>
+    <rect x="0" y="800" width="1600" height="70" fill="url(#water)"/>
+    <g stroke="#dfeaec" stroke-width="4" stroke-linecap="round" opacity="0.7">
+      <path d="M180 822h120M420 846h90M700 826h140M980 850h80M1180 824h150M1400 846h90"/>
+    </g>
+  </g>
+  <path fill="#302923" opacity="0.16" fill-rule="evenodd" transform="translate(16 14)"
+    d="M-20-20h1640v1040H-20zM145 900V365a185 185 0 0 1 370 0v535zM615 900V365a185 185 0 0 1 370 0v535zM1085 900V365a185 185 0 0 1 370 0v535z"/>
+  <path fill="#eee4d2" fill-rule="evenodd"
+    d="M0 0h1600v1000H0zM145 900V365a185 185 0 0 1 370 0v535zM615 900V365a185 185 0 0 1 370 0v535zM1085 900V365a185 185 0 0 1 370 0v535z"/>
+  <rect x="0" y="900" width="1600" height="100" fill="#dfcfb6"/>
+  <rect x="0" y="900" width="1600" height="6" fill="#cdb99b"/>
+  <g>
+    <path d="M40 900l18-110h104l18 110z" fill="#b8694e"/>
+    <path d="M110 800c-40-80-10-170 0-230 30 70 50 150 0 230z" fill="#52745f"/>
+    <path d="M100 800c-70-40-100-120-100-170 60 30 110 90 100 170z" fill="#789078"/>
+    <path d="M120 800c50-60 110-80 150-90-20 60-70 100-150 90z" fill="#1e5b43"/>
+  </g>
+  <g>
+    <path d="M1470 900l14-80h84l14 80z" fill="#b8694e"/>
+    <path d="M1526 822c-30-60-10-130 0-170 24 50 36 110 0 170z" fill="#52745f"/>
+    <path d="M1520 822c-50-30-76-90-76-126 46 22 84 66 76 126z" fill="#1e5b43"/>
+  </g>
+</svg>

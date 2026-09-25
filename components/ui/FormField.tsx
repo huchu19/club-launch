@@ -1,4 +1,4 @@
-import type { ComponentPropsWithoutRef, ReactNode } from 'react'
+import type { ComponentProps, ReactNode } from 'react'
 import { cn } from '@/lib/cn'
 
 // Labelled, described and error-annotated form controls (WCAG 1.3.1, 3.3.1, 3.3.2).
@@ -59,8 +59,7 @@ function ErrorText({ id, error }: { id: string; error?: string }) {
   )
 }
 
-export type TextFieldProps = FieldBaseProps &
-  Omit<ComponentPropsWithoutRef<'input'>, 'id' | 'className'>
+export type TextFieldProps = FieldBaseProps & Omit<ComponentProps<'input'>, 'id' | 'className'>
 
 export function TextField({
   id,
@@ -88,7 +87,7 @@ export function TextField({
 }
 
 export type TextAreaFieldProps = FieldBaseProps &
-  Omit<ComponentPropsWithoutRef<'textarea'>, 'id' | 'className'> & {
+  Omit<ComponentProps<'textarea'>, 'id' | 'className'> & {
     /** Shows "n of max characters" under the field when maxLength is set. */
     showCount?: boolean
   }
@@ -129,7 +128,7 @@ export function TextAreaField({
 export type SelectOption = { value: string; label: string }
 
 export type SelectFieldProps = FieldBaseProps &
-  Omit<ComponentPropsWithoutRef<'select'>, 'id' | 'className'> & {
+  Omit<ComponentProps<'select'>, 'id' | 'className'> & {
     options: SelectOption[]
     /** Text for an empty first option, e.g. "Choose a time". */
     placeholder?: string
@@ -176,7 +175,7 @@ export function SelectField({
 }
 
 export type CheckboxFieldProps = Omit<FieldBaseProps, 'optional'> &
-  Omit<ComponentPropsWithoutRef<'input'>, 'id' | 'className' | 'type'>
+  Omit<ComponentProps<'input'>, 'id' | 'className' | 'type'>
 
 export function CheckboxField({ id, label, hint, error, className, ...input }: CheckboxFieldProps) {
   return (
