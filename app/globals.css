@@ -1,0 +1,159 @@
+@import 'tailwindcss';
+
+/* -------------------------------------------------------------------------- */
+/*  Tokens — docs/DESIGN.md.                                                  */
+/*  Light neutrals, fonts, the 8px unit and easing come from the portfolio    */
+/*  (parchment, cream plaster, walnut ink). The brand is the deep green.      */
+/*  Every text/background pair is checked for WCAG AA (see docs/PROGRESS.md). */
+/* -------------------------------------------------------------------------- */
+@theme {
+  --color-canvas: #f8f1e5; /* parchment — page background */
+  --color-surface: #fffbf4; /* cards, inputs */
+  --color-raised: #eee4d2; /* cream plaster — alternate sections */
+  --color-line: #ddd0bc; /* decorative rules */
+  --color-line-strong: #8b7b6d; /* input borders (3:1 non-text contrast) */
+  --color-ink: #302923; /* walnut ink */
+  --color-ink-muted: #6f6257;
+  --color-brand: #1e5b43;
+  --color-brand-strong: #174a36;
+  --color-brand-wash: #e2eadf;
+  --color-on-brand: #ffffff;
+  --color-accent: #9a4538; /* terracotta, used sparingly for small labels */
+  --color-danger: #a3372b;
+  --color-danger-wash: #f7e4dd;
+
+  --font-display: var(--font-bricolage), 'Helvetica Neue', system-ui, sans-serif;
+  --font-sans: var(--font-inter), 'Avenir Next', system-ui, sans-serif;
+
+  --radius-sm: 4px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+
+  --spacing-section: clamp(4rem, 8vw, 8rem);
+
+  --ease-soft: cubic-bezier(0.22, 1, 0.36, 1);
+  --animate-rise: rise 280ms var(--ease-soft) both;
+  --animate-fade: fade 240ms var(--ease-soft) both;
+
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @keyframes fade {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+}
+
+/* Dark: near-black, green-tinted. Follows the OS unless data-theme forces one. */
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme='light']) {
+      color-scheme: dark;
+      --color-canvas: #0c1410;
+      --color-surface: #131d18;
+      --color-raised: #18251f;
+      --color-line: #24322b;
+      --color-line-strong: #6b7c73;
+      --color-ink: #eef2ef;
+      --color-ink-muted: #a3b0a9;
+      --color-brand: #5fb38f;
+      --color-brand-strong: #7cc6a5;
+      --color-brand-wash: #15271f;
+      --color-on-brand: #0c1410;
+      --color-accent: #e39a7d;
+      --color-danger: #f08a7e;
+      --color-danger-wash: #2a1714;
+    }
+  }
+
+  :root[data-theme='dark'] {
+    color-scheme: dark;
+    --color-canvas: #0c1410;
+    --color-surface: #131d18;
+    --color-raised: #18251f;
+    --color-line: #24322b;
+    --color-line-strong: #6b7c73;
+    --color-ink: #eef2ef;
+    --color-ink-muted: #a3b0a9;
+    --color-brand: #5fb38f;
+    --color-brand-strong: #7cc6a5;
+    --color-brand-wash: #15271f;
+    --color-on-brand: #0c1410;
+    --color-accent: #e39a7d;
+    --color-danger: #f08a7e;
+    --color-danger-wash: #2a1714;
+  }
+
+  html {
+    background-color: var(--color-canvas);
+    color: var(--color-ink);
+    -webkit-text-size-adjust: 100%;
+    scroll-padding-top: 1.5rem;
+  }
+
+  body {
+    background-color: var(--color-canvas);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-size: 1.0625rem;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    font-weight: 500;
+    line-height: 1.08;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-brand);
+    outline-offset: 3px;
+  }
+
+  ::selection {
+    background-color: var(--color-brand);
+    color: var(--color-on-brand);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    html {
+      scroll-behavior: smooth;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}

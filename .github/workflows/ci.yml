@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+# Deterministic, secret-free CI: AI calls return fixtures and the site serves
+# the bundled demo content instead of Sanity. All values below are dummies.
+env:
+  AI_MOCK: '1'
+  CONTENT_MOCK: '1'
+  CRM_ADAPTER: mock
+  NEXT_PUBLIC_SANITY_PROJECT_ID: ci-dummy
+  NEXT_PUBLIC_SANITY_DATASET: production
+  NEXT_PUBLIC_SANITY_API_VERSION: '2025-01-01'
+  NEXT_PUBLIC_SITE_URL: http://localhost:3000
+  SANITY_REVALIDATE_SECRET: ci-dummy-secret
+  ADMIN_USER: admin
+  ADMIN_PASSWORD: ci-dummy-password
+  NEXT_TELEMETRY_DISABLED: '1'
+
+jobs:
+  checks:
+    name: Lint, typecheck, test, build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: pnpm build
