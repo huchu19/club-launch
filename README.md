@@ -1,11 +1,14 @@
 # Club Launch
 
+[![CI](https://github.com/huchu19/club-launch/actions/workflows/ci.yml/badge.svg)](https://github.com/huchu19/club-launch/actions/workflows/ci.yml)
+
 A CMS-driven platform for launching social wellness club pages. Editors build each club's page from
 pre-built, tested blocks. Two AI helpers draft pages and answer visitor questions, and an editor
 always has the final say.
 
-- **Live app:** _added after the first Vercel deploy_
-- **Storybook:** _added after the Storybook deploy_
+- **Live app:** https://club-launch-kappa.vercel.app (club page:
+  [/uk/clubs/linden-mayfair](https://club-launch-kappa.vercel.app/uk/clubs/linden-mayfair))
+- **Storybook:** https://club-launch-storybook.vercel.app
 - **90-second walkthrough:** _video link added after recording_
 
 Designed around a premium operator's rollout of social wellness clubs, where existing gyms are
