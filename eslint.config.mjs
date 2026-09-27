@@ -24,7 +24,7 @@ export default defineConfig([
     'coverage/**',
     'playwright-report/**',
     'test-results/**',
-    'claude-code-kit/**',
+    '.agent/**',
     '!.storybook',
   ]),
 ])

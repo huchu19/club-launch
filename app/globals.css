@@ -4,7 +4,7 @@
 /*  Tokens — docs/DESIGN.md.                                                  */
 /*  Light neutrals, fonts, the 8px unit and easing come from the portfolio    */
 /*  (parchment, cream plaster, walnut ink). The brand is the deep green.      */
-/*  Every text/background pair is checked for WCAG AA (see docs/PROGRESS.md). */
+/*  Every text/background pair is checked for WCAG AA (ratios in docs/DESIGN.md). */
 /* -------------------------------------------------------------------------- */
 @theme {
   --color-canvas: #f8f1e5; /* parchment — page background */
