@@ -1,5 +1,6 @@
 import type {
   Club,
+  ClubMap,
   FaqStatus,
   Intensity,
   Market,
@@ -101,6 +102,45 @@ const mayfairSpaces: Space[] = [
     openingHours: everyDay('07:00', '20:00', ['08:00', '19:00']),
   },
 ]
+
+/**
+ * An invented, illustrative two-floor plan (never a real club's drawings), in a
+ * 1000 × 640 viewBox. Zones point at spaces by id; features are decoration.
+ */
+const mayfairMap: ClubMap = {
+  viewBox: '0 0 1000 640',
+  floors: [
+    {
+      name: 'Ground floor',
+      zones: [
+        { spaceId: 'garden-kitchen', shape: 'rect', x: 40, y: 40, w: 360, h: 250 },
+        { spaceId: 'workspace', shape: 'rect', x: 420, y: 40, w: 540, h: 250 },
+        {
+          spaceId: 'strength-studio',
+          shape: 'polygon',
+          points: '40,310 600,310 600,600 240,600 240,470 40,470',
+          labelX: 420,
+          labelY: 440,
+        },
+        { spaceId: 'movement-studio', shape: 'rect', x: 620, y: 310, w: 340, h: 290 },
+      ],
+      features: [
+        { kind: 'entrance', label: 'Entrance', shape: 'rect', x: 40, y: 490, w: 180, h: 110 },
+      ],
+    },
+    {
+      name: 'Lower ground floor',
+      zones: [
+        { spaceId: 'pool', shape: 'rect', x: 40, y: 40, w: 620, h: 230 },
+        { spaceId: 'thermal-suite', shape: 'rect', x: 680, y: 40, w: 280, h: 230 },
+        { spaceId: 'contrast-therapy', shape: 'rect', x: 680, y: 290, w: 280, h: 310 },
+      ],
+      features: [
+        { kind: 'garden', label: 'Courtyard garden', shape: 'rect', x: 40, y: 290, w: 620, h: 310 },
+      ],
+    },
+  ],
+}
 
 type ClassSlot = [
   time: string,
@@ -242,6 +282,8 @@ export const demoClubs: Club[] = [
     ],
     spaces: mayfairSpaces,
     schedule: mayfairSchedule,
+    timeZone: 'Europe/London',
+    clubMap: mayfairMap,
     facts: [
       { label: 'Club membership', value: '£245 per month.' },
       { label: 'Club and workspace membership', value: '£325 per month.' },
@@ -326,6 +368,7 @@ export const demoClubs: Club[] = [
     ],
     spaces: [],
     schedule: [],
+    timeZone: 'Europe/London',
     facts: [
       {
         label: 'Conversion',
@@ -416,6 +459,14 @@ export const demoPages: DemoClubPage[] = [
         intro:
           'Strength, swimming, recovery and a quiet place to work, designed to be used in the same visit.',
         facilities: [],
+      },
+      {
+        _type: 'clubMapBlock',
+        _key: 'map',
+        eyebrow: 'Find your way around',
+        heading: 'Two floors, one unhurried day',
+        intro:
+          'Explore the club floor by floor. Choose a space to see what it’s for and what’s on there now. The plan is illustrative.',
       },
       {
         _type: 'conciergeBlock',

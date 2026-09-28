@@ -134,6 +134,14 @@ export const faqBlockSchema = z.object({
   allowQuestions: z.preprocess((v) => v ?? false, z.boolean()),
 })
 
+export const clubMapBlockSchema = z.object({
+  _type: z.literal('clubMapBlock'),
+  ...keyed,
+  eyebrow: opt(z.string()),
+  heading: z.string(),
+  intro: opt(z.string()),
+})
+
 export const calculatorBlockSchema = z.object({
   _type: z.literal('calculatorBlock'),
   ...keyed,
@@ -163,6 +171,7 @@ export const pageBlockSchema = z.discriminatedUnion('_type', [
   faqBlockSchema,
   conciergeBlockSchema,
   calculatorBlockSchema,
+  clubMapBlockSchema,
 ])
 
 export type HeroBlockData = z.infer<typeof heroBlockSchema>
@@ -174,6 +183,7 @@ export type TourBookingBlockData = z.infer<typeof tourBookingBlockSchema>
 export type FaqBlockData = z.infer<typeof faqBlockSchema>
 export type ConciergeBlockData = z.infer<typeof conciergeBlockSchema>
 export type CalculatorBlockData = z.infer<typeof calculatorBlockSchema>
+export type ClubMapBlockData = z.infer<typeof clubMapBlockSchema>
 export type PageBlock = z.infer<typeof pageBlockSchema>
 export type PageBlockType = PageBlock['_type']
 
@@ -254,6 +264,53 @@ export const scheduleEntrySchema = z.object({
 })
 export type ScheduleEntry = z.infer<typeof scheduleEntrySchema>
 
+/**
+ * Geometry for one area of an illustrated floor plan, in the map's viewBox
+ * units: a rectangle (x, y, w, h) or a polygon ("x,y x,y …").
+ */
+const mapShapeFields = {
+  shape: z.enum(['rect', 'polygon']),
+  x: opt(z.number()),
+  y: opt(z.number()),
+  w: opt(z.number()),
+  h: opt(z.number()),
+  points: opt(z.string()),
+  /** Where the label sits; defaults to the shape's centre. */
+  labelX: opt(z.number()),
+  labelY: opt(z.number()),
+}
+
+/** A selectable area of the map, tied to one of the club's spaces. */
+export const mapZoneSchema = z.object({
+  spaceId: z.string(),
+  /** Defaults to the space's name. */
+  label: opt(z.string()),
+  ...mapShapeFields,
+})
+export type MapZone = z.infer<typeof mapZoneSchema>
+
+/** A decorative, non-interactive area such as a garden or the entrance. */
+export const mapFeatureSchema = z.object({
+  kind: z.enum(['garden', 'entrance', 'other']),
+  label: opt(z.string()),
+  ...mapShapeFields,
+})
+export type MapFeature = z.infer<typeof mapFeatureSchema>
+
+export const mapFloorSchema = z.object({
+  name: z.string(),
+  zones: list(mapZoneSchema),
+  features: list(mapFeatureSchema),
+})
+export type MapFloor = z.infer<typeof mapFloorSchema>
+
+/** An illustrative, invented floor plan: never a real architect's drawing. */
+export const clubMapSchema = z.object({
+  viewBox: z.string().regex(/^\d+ \d+ \d+ \d+$/),
+  floors: list(mapFloorSchema),
+})
+export type ClubMap = z.infer<typeof clubMapSchema>
+
 export const clubSchema = z.object({
   _id: z.string(),
   name: z.string(),
@@ -268,6 +325,9 @@ export const clubSchema = z.object({
   facilities: list(facilitySchema),
   spaces: list(spaceSchema),
   schedule: list(scheduleEntrySchema),
+  /** IANA time zone for opening hours and the timetable. */
+  timeZone: z.preprocess((v) => v ?? 'Europe/London', z.string()),
+  clubMap: opt(clubMapSchema),
   facts: list(factSchema),
   seo: opt(seoSchema),
 })

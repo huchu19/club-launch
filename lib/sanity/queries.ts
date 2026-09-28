@@ -25,6 +25,15 @@ const CLUB = `{
   facilities[]{ name, category, description },
   spaces[]{ id, name, category, description, typicalUses, openingHours[]{ day, opens, closes } },
   schedule[]{ day, time, name, spaceId, durationMin, intensity },
+  timeZone,
+  clubMap{
+    viewBox,
+    floors[]{
+      name,
+      zones[]{ spaceId, label, shape, x, y, w, h, points, labelX, labelY },
+      features[]{ kind, label, shape, x, y, w, h, points, labelX, labelY }
+    }
+  },
   facts[]{ label, value },
   seo
 }`
