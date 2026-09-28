@@ -187,6 +187,19 @@ tour form, which shows that the plan is attached and lets the visitor remove it.
 loads the plan by id, checks it belongs to the same club, and passes `{ lead, dayPlan }` to the
 CRM adapter. The model runs before any contact details exist, so it never sees them.
 
+### Shared day plans
+
+"Share my day" uses the device's share sheet (`navigator.share`) or copies the link to
+`/[market]/clubs/[slug]/day/[dayPlanId]`. That page is rendered on request: the loader rejects a
+malformed id before any lookup, loads the plan and the club page, and returns 404 if the plan
+belongs to a different club than the URL names. It shows the structured plan only (the visitor's
+message was never stored) and is marked `noindex, nofollow`.
+
+Its Open Graph image is an `opengraph-image.tsx` route drawn with `next/og` in the site's own
+typefaces and colours: the day, the club, the first four stops and the platform name. `next/og`
+can't read the WOFF2 files that `next/font` serves, so TrueType copies of the two open-licence
+fonts live in `assets/fonts`.
+
 ### Club map
 
 The floor plan is data on the club document: a `viewBox`, floors, and zones that are either

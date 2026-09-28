@@ -12,6 +12,8 @@ export type ConciergeBlockProps = Omit<ConciergeBlockData, '_type' | '_key'> & {
   currency?: string
   /** Id of the page's tour booking section, when it has one. */
   tourSectionId?: string
+  /** Base path for shared plans, e.g. "/uk/clubs/linden-mayfair/day". */
+  sharePath?: string
   /** Override the transport (Storybook, tests). Defaults to POST /api/concierge. */
   plan?: PlanDay
   id?: string
@@ -27,6 +29,7 @@ export function ConciergeBlock({
   locale,
   currency,
   tourSectionId,
+  sharePath,
   plan,
   id = 'plan-your-day',
 }: ConciergeBlockProps) {
@@ -49,6 +52,7 @@ export function ConciergeBlock({
             locale={locale}
             currency={currency}
             tourSectionId={tourSectionId}
+            sharePath={sharePath}
             plan={plan}
           />
         </Card>

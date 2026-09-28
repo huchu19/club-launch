@@ -14,7 +14,7 @@ import {
 } from '@/lib/concierge/protocol'
 import { onConciergePrefill } from '@/lib/concierge/prefill'
 import { shareDayPlan } from '@/lib/concierge/shared-plan-store'
-import { formatPrice } from '@/lib/format'
+import { DayPlanDetails } from './DayPlanDetails'
 
 export type PlanDayResult = ConciergeResponse | { status: 'invalid' | 'error'; message: string }
 export type PlanDay = (request: ConciergeRequest) => Promise<PlanDayResult>
@@ -50,6 +50,8 @@ export type ConciergePlannerProps = {
   currency?: string
   /** Id of the page's tour booking section; "Book a tour for this day" needs one. */
   tourSectionId?: string
+  /** Base path for shared plans, e.g. "/uk/clubs/linden-mayfair/day"; "Share my day" needs one. */
+  sharePath?: string
   plan?: PlanDay
 }
 
@@ -66,6 +68,7 @@ export function ConciergePlanner({
   locale,
   currency,
   tourSectionId,
+  sharePath,
   plan = postConciergeRequest,
 }: ConciergePlannerProps) {
   const [message, setMessage] = useState('')
@@ -73,6 +76,7 @@ export function ConciergePlanner({
   const [fieldError, setFieldError] = useState<string | null>(null)
   const [state, setState] = useState<State>({ kind: 'idle' })
   const [announcement, setAnnouncement] = useState('')
+  const [shareNote, setShareNote] = useState('')
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const resultRef = useRef<HTMLHeadingElement>(null)
   const loading = state.kind === 'loading'
@@ -144,7 +148,27 @@ export function ConciergePlanner({
     }
   }
 
+  async function shareDay(day: DayPlanView) {
+    if (!day.id || !sharePath) return
+    const url = new URL(`${sharePath}/${day.id}`, window.location.origin).href
+    if (typeof navigator.share === 'function') {
+      try {
+        await navigator.share({ title: `My ${day.day} at ${day.clubName}`, url })
+        return
+      } catch (error) {
+        if ((error as Error).name === 'AbortError') return
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(url)
+      setShareNote('Link copied. Anyone with the link can see this plan.')
+    } catch {
+      setShareNote(`Copy this link to share your plan: ${url}`)
+    }
+  }
+
   function startAgain() {
+    setShareNote('')
     setState({ kind: 'idle' })
     setAnnouncement('')
     // Wait for the form to render again before focusing it.
@@ -171,6 +195,8 @@ export function ConciergePlanner({
           locale={locale}
           currency={currency}
           onBookTour={tourSectionId && state.plan.id ? () => bookTour(state.plan) : undefined}
+          onShare={sharePath && state.plan.id ? () => void shareDay(state.plan) : undefined}
+          shareNote={shareNote}
           onStartAgain={startAgain}
         />
       ) : (
@@ -273,6 +299,8 @@ type PlanResultProps = {
   locale?: string
   currency?: string
   onBookTour?: () => void
+  onShare?: () => void
+  shareNote?: string
   onStartAgain: () => void
 }
 
@@ -282,9 +310,10 @@ export function PlanResult({
   locale,
   currency,
   onBookTour,
+  onShare,
+  shareNote,
   onStartAgain,
 }: PlanResultProps) {
-  const price = (value: string) => formatPrice(value, locale, currency)
   return (
     <div className="space-y-8">
       <div>
@@ -294,55 +323,13 @@ export function PlanResult({
         <p className="mt-3 text-lg text-ink-muted">{day.summary}</p>
       </div>
 
-      <ol
-        className="space-y-6 border-l border-line pl-6"
-        aria-label={`Your ${day.day}, stop by stop`}
-      >
-        {day.stops.map((stop, index) => (
-          <li
-            key={`${stop.time}-${stop.spaceId}`}
-            className="relative motion-safe:animate-rise"
-            style={{ animationDelay: `${index * 90}ms` }}
-          >
-            <span
-              aria-hidden="true"
-              className="absolute top-2 -left-[31px] size-3 rounded-full border-2 border-brand bg-surface"
-            />
-            <p className="flex flex-wrap items-baseline gap-x-3">
-              <time className="font-medium text-brand tabular-nums">{stop.time}</time>
-              <span className="font-display text-xl text-ink">{stop.activity}</span>
-            </p>
-            <p className="text-sm text-ink-muted">
-              {stop.spaceName}
-              {stop.className ? ' · Scheduled class' : ''}
-            </p>
-            <p className="mt-1">{stop.reason}</p>
-          </li>
-        ))}
-      </ol>
-
-      {day.caveats.length > 0 ? (
-        <InlineMessage tone="info" title="Before you go" live="off">
-          <ul className="space-y-1">
-            {day.caveats.map((caveat) => (
-              <li key={caveat}>{caveat}</li>
-            ))}
-          </ul>
-        </InlineMessage>
-      ) : null}
-
-      {day.recommendedPlan ? (
-        <div className="rounded-sm border border-line bg-canvas px-5 py-4">
-          <p className="text-sm text-ink-muted">Suggested membership</p>
-          <p className="font-display text-2xl text-ink">{day.recommendedPlan.name}</p>
-          <p>
-            {price(day.recommendedPlan.pricePerMonth)} a month
-            {day.recommendedPlan.joiningFee
-              ? `, plus a one-off ${price(day.recommendedPlan.joiningFee)} joining fee`
-              : ''}
-          </p>
-        </div>
-      ) : null}
+      <DayPlanDetails
+        day={day}
+        locale={locale}
+        currency={currency}
+        animate
+        listLabel={`Your ${day.day}, stop by stop`}
+      />
 
       <div className="flex flex-wrap gap-3">
         {onBookTour ? (
@@ -350,10 +337,18 @@ export function PlanResult({
             Book a tour for this day
           </Button>
         ) : null}
+        {onShare ? (
+          <Button variant="secondary" size="lg" onClick={onShare}>
+            Share my day
+          </Button>
+        ) : null}
         <Button variant="secondary" size="lg" onClick={onStartAgain}>
           Plan a different day
         </Button>
       </div>
+      <p role="status" className="text-sm text-ink-muted empty:hidden">
+        {shareNote}
+      </p>
 
       <p className="text-sm text-ink-muted">
         Suggested automatically from the club’s timetable, which can change. The team will confirm
