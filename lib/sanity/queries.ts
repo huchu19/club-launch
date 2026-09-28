@@ -96,6 +96,28 @@ export const CLUBS_WITH_PAGE_STATE_QUERY = defineQuery(`
   }
 `)
 
+// Insights: every FAQ item (published documents only) and the latest day plans.
+export const CLUB_QUESTIONS_QUERY = defineQuery(`
+  *[_type == "faqItem" && club._ref == $clubId && !(_id in path("drafts.**"))]
+    | order(askedCount desc){
+    _id, question, answer, status, source, askedCount, "createdAt": _createdAt
+  }
+`)
+
+export const CLUB_DAY_PLANS_QUERY = defineQuery(`
+  *[_type == "dayPlan" && club._ref == $clubId] | order(createdAt desc)[0...500]{
+    publicId,
+    "clubId": club._ref,
+    day,
+    summary,
+    stops[]{ time, spaceId, className, activity, reason },
+    recommendedPlanName,
+    caveats,
+    chips,
+    createdAt
+  }
+`)
+
 export const DAY_PLAN_QUERY = defineQuery(`
   *[_type == "dayPlan" && publicId == $publicId][0]{
     publicId,

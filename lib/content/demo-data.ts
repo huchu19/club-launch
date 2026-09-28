@@ -613,6 +613,8 @@ export type DemoFaq = {
   status: FaqStatus
   source: 'editor' | 'ai'
   askedCount: number
+  /** When the question was first asked; the seeded answers pre-date the demo. */
+  createdAt?: string
 }
 
 export const demoFaqs: DemoFaq[] = [

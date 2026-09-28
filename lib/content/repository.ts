@@ -5,6 +5,7 @@ import type {
   ClubPageSummary,
   DayPlan,
   FaqStatus,
+  QuestionRecord,
   PageBlock,
   Seo,
 } from './types'
@@ -67,4 +68,8 @@ export interface ContentRepository {
   /** Stores a first-day plan under its public id. */
   createDayPlan(plan: DayPlan): Promise<{ id: string }>
   getDayPlan(publicId: string): Promise<DayPlan | null>
+
+  /** For the insights page: every FAQ item and recent day plans for a club. */
+  listQuestions(clubId: string): Promise<QuestionRecord[]>
+  listDayPlans(clubId: string): Promise<DayPlan[]>
 }

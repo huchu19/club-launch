@@ -3,6 +3,7 @@ import { DraftForm } from '@/components/admin/DraftForm'
 import { Container } from '@/components/ui/Container'
 import { Eyebrow } from '@/components/ui/Eyebrow'
 import { Heading } from '@/components/ui/Heading'
+import { TextLink } from '@/components/ui/TextLink'
 import { getContentRepository } from '@/lib/content'
 
 // Behind basic auth (proxy.ts); always fresh so newly drafted clubs drop off the list.
@@ -34,6 +35,9 @@ export default async function DraftPage() {
           </li>
           <li>It never invents awards, statistics or staff.</li>
         </ul>
+        <p className="mt-6 text-sm text-ink-muted">
+          Also in admin: <TextLink href="/admin/insights">what visitors are asking</TextLink>.
+        </p>
       </div>
       <div>
         <DraftForm clubs={clubs} />

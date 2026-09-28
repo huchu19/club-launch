@@ -66,6 +66,11 @@ actually ask.
 - **AI page drafter.** At `/admin/draft` (basic auth), a brief becomes an **unpublished draft**
   page. Any price, date or number the model doesn't have becomes a `[[PLACEHOLDER]]`, and Studio
   won't publish the page until every placeholder is replaced.
+- **Question insights for club managers.** At `/admin/insights` (basic auth): what visitors
+  ask most, with near-duplicates grouped by word overlap (no embeddings), which questions still
+  need an approved answer (flagging ones the assistant couldn't answer), what's new this week,
+  and what first-day planners care about (options chosen, caveats, spaces). Each question links
+  straight to its answer in Studio.
 - **SEO and performance.** Pages are statically rendered and revalidated by tag. Each page has
   `generateMetadata`, a canonical URL and `HealthClub` JSON-LD, and the site serves a sitemap and
   robots file. Images go through Sanity's CDN.
@@ -158,7 +163,7 @@ that `pnpm seed` writes. CI, e2e and local development without credentials use t
 |---|---|---|
 | Unit (Vitest) | Schemas, normalisation, grounding context, prompt fencing, redaction, rate limiter, CRM retry, drafter retry, number guard, publish rule, day-plan validator and retry, health caveats, cost calculation edge cases, "what's on now" across time zones and midnight, floor-plan geometry, JSON-LD, webhook signatures, API routes | `**/*.test.ts` |
 | Component (Storybook + Vitest browser) | Every component in light, dark and mobile, with edge cases and interaction tests; any axe violation fails the build | `**/*.stories.tsx` |
-| End to end (Playwright + axe) | Keyboard-only tour booking; keyboard-only day planning and booking a tour for that day; the cost calculator with real arrow-key presses; the club map by keyboard and touch, with no layout shift and reduced motion; the time-of-day hero with no hydration warnings; the busyness charts by keyboard; shared day pages (plan only, noindex, the social image route) and the copy-link fallback; no sideways scrolling on a phone; health caveats and refusals; FAQ streaming, session-only pending answers, cache hits, refusals and the quota fallback; the drafter; admin auth | `e2e/` |
+| End to end (Playwright + axe) | Keyboard-only tour booking; keyboard-only day planning and booking a tour for that day; the cost calculator with real arrow-key presses; the club map by keyboard and touch, with no layout shift and reduced motion; the time-of-day hero with no hydration warnings; the busyness charts by keyboard; the insights page behind admin auth, loading in under a second; shared day pages (plan only, noindex, the social image route) and the copy-link fallback; no sideways scrolling on a phone; health caveats and refusals; FAQ streaming, session-only pending answers, cache hits, refusals and the quota fallback; the drafter; admin auth | `e2e/` |
 
 All AI calls in CI and e2e use `AI_MOCK=1`: deterministic fixtures that still run through the real
 AI SDK code (`MockLanguageModelV4`). A question or day-planning message containing "quota"
