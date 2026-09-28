@@ -29,7 +29,9 @@ export default async function InsightsPage({ searchParams }: Props) {
   const { club: requested } = await searchParams
   const repository = getContentRepository()
   const clubs = await repository.listClubPages()
-  const current = clubs.find((c) => c.slug === requested) ?? clubs[0]
+  // Default to an open club: it's the one with real visitors.
+  const current =
+    clubs.find((c) => c.slug === requested) ?? clubs.find((c) => c.status === 'open') ?? clubs[0]
   const club = current ? await repository.getClubBySlug(current.slug) : null
 
   if (!current || !club) {

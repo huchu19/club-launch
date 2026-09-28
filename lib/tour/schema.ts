@@ -32,35 +32,42 @@ function isRealDate(iso: string): boolean {
   return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === iso
 }
 
+/** Contact fields shared by every public form (tour booking, founding signup). */
+export const contactFields = {
+  clubSlug: z
+    .string()
+    .min(1)
+    .max(100)
+    .regex(/^[a-z0-9-]+$/),
+  name: z
+    .string({ error: 'Enter your name' })
+    .trim()
+    .min(1, { error: 'Enter your name' })
+    .max(100, { error: 'Name must be 100 characters or fewer' }),
+  email: z
+    .string({ error: 'Enter your email address' })
+    .trim()
+    .min(1, { error: 'Enter your email address' })
+    .max(254, { error: 'Email address must be 254 characters or fewer' })
+    .pipe(
+      z.email({ error: 'Enter an email address in the correct format, like name@example.com' }),
+    ),
+  phone: z
+    .string({ error: 'Enter a phone number using digits, spaces, brackets and + only' })
+    .trim()
+    .max(30, { error: 'Phone number must be 30 characters or fewer' })
+    .regex(/^[+\d\s()-]*$/, {
+      error: 'Enter a phone number using digits, spaces, brackets and + only',
+    })
+    .optional(),
+  /** Honeypot. Real visitors never see or fill it. */
+  website: z.string().max(200).optional(),
+}
+
 export function createTourRequestSchema(today: string = todayIso()) {
   const latest = addDaysIso(today, MAX_DAYS_AHEAD)
   return z.object({
-    clubSlug: z
-      .string()
-      .min(1)
-      .max(100)
-      .regex(/^[a-z0-9-]+$/),
-    name: z
-      .string({ error: 'Enter your name' })
-      .trim()
-      .min(1, { error: 'Enter your name' })
-      .max(100, { error: 'Name must be 100 characters or fewer' }),
-    email: z
-      .string({ error: 'Enter your email address' })
-      .trim()
-      .min(1, { error: 'Enter your email address' })
-      .max(254, { error: 'Email address must be 254 characters or fewer' })
-      .pipe(
-        z.email({ error: 'Enter an email address in the correct format, like name@example.com' }),
-      ),
-    phone: z
-      .string({ error: 'Enter a phone number using digits, spaces, brackets and + only' })
-      .trim()
-      .max(30, { error: 'Phone number must be 30 characters or fewer' })
-      .regex(/^[+\d\s()-]*$/, {
-        error: 'Enter a phone number using digits, spaces, brackets and + only',
-      })
-      .optional(),
+    ...contactFields,
     preferredDate: z
       .string({ error: 'Enter a preferred date' })
       .min(1, { error: 'Enter a preferred date' })
@@ -79,8 +86,6 @@ export function createTourRequestSchema(today: string = todayIso()) {
       .string()
       .regex(/^[a-z0-9]{8,32}$/)
       .optional(),
-    /** Honeypot. Real visitors never see or fill it. */
-    website: z.string().max(200).optional(),
   })
 }
 
@@ -91,13 +96,17 @@ export type TourField = Exclude<keyof TourRequest, 'clubSlug' | 'website' | 'day
 export type TourFieldErrors = Partial<Record<TourField, string>>
 
 /** First error message per field. */
-export function tourFieldErrors(error: z.ZodError): TourFieldErrors {
+export function fieldErrors<F extends string>(error: z.ZodError): Partial<Record<F, string>> {
   const flat = z.flattenError(error).fieldErrors as Record<string, string[] | undefined>
-  const out: TourFieldErrors = {}
+  const out: Partial<Record<F, string>> = {}
   for (const [field, messages] of Object.entries(flat)) {
-    if (messages?.[0]) out[field as TourField] = messages[0]
+    if (messages?.[0]) out[field as F] = messages[0]
   }
   return out
+}
+
+export function tourFieldErrors(error: z.ZodError): TourFieldErrors {
+  return fieldErrors<TourField>(error)
 }
 
 export type TourSubmitResult =

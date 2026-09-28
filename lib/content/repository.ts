@@ -1,3 +1,4 @@
+import type { PlacesStore } from '@/lib/founding/places'
 import type {
   Club,
   ClubOption,
@@ -68,6 +69,9 @@ export interface ContentRepository {
   /** Stores a first-day plan under its public id. */
   createDayPlan(plan: DayPlan): Promise<{ id: string }>
   getDayPlan(publicId: string): Promise<DayPlan | null>
+
+  /** Founding member places taken, per club (optimistic concurrency). */
+  readonly foundingPlaces: PlacesStore
 
   /** For the insights page: every FAQ item and recent day plans for a club. */
   listQuestions(clubId: string): Promise<QuestionRecord[]>

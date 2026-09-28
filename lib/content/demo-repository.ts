@@ -1,4 +1,5 @@
 import { normalizeQuestion } from '@/lib/faq/normalize'
+import { createMemoryPlacesStore } from '@/lib/founding/places'
 import { demoClubs, demoFaqs, demoPages, MAYFAIR_ID, type DemoFaq } from './demo-data'
 import type { ContentRepository, DraftClubPage } from './repository'
 import {
@@ -13,6 +14,7 @@ import {
 } from './types'
 
 type DemoStore = {
+  places: ReturnType<typeof createMemoryPlacesStore>
   faqs: DemoFaq[]
   drafts: Array<DraftClubPage & { _id: string }>
   dayPlans: DayPlan[]
@@ -104,6 +106,7 @@ function store(): DemoStore {
   if (!globalStore.__clubLaunchDemoStore) {
     const history = demoHistory()
     globalStore.__clubLaunchDemoStore = {
+      places: createMemoryPlacesStore(),
       faqs: [...structuredClone(demoFaqs), ...history.faqs],
       drafts: [],
       dayPlans: history.dayPlans,
@@ -123,6 +126,11 @@ function clubById(id: string): Club | undefined {
 
 export const demoRepository: ContentRepository = {
   kind: 'demo',
+
+  foundingPlaces: {
+    read: (key) => store().places.read(key),
+    compareAndSet: (key, expected, taken) => store().places.compareAndSet(key, expected, taken),
+  },
 
   async listClubPages(): Promise<ClubPageSummary[]> {
     return demoPages.flatMap((page) => {

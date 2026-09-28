@@ -4,6 +4,8 @@ import { MockCrmAdapter } from './mock'
 
 export {
   submitLeadWithRetry,
+  withOneRetry,
+  type FoundingMember,
   type CrmAdapter,
   type Lead,
   type LeadDayPlan,

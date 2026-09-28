@@ -21,7 +21,8 @@ export default defineConfig({
   schema: {
     types: schemaTypes,
     // Day plans are written by the site, never created by hand.
-    templates: (templates) => templates.filter((t) => t.schemaType !== 'dayPlan'),
+    templates: (templates) =>
+      templates.filter((t) => t.schemaType !== 'dayPlan' && t.schemaType !== 'foundingPlaces'),
   },
   document: {
     badges: (previous, context) =>

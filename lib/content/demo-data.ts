@@ -33,6 +33,7 @@ export const demoMarket: Market = {
 
 export const MAYFAIR_ID = 'club-linden-mayfair'
 export const MOORGATE_ID = 'club-linden-moorgate'
+export const MARYLEBONE_ID = 'club-linden-marylebone'
 
 const everyDay = (opens: string, closes: string, weekend?: [string, string]) =>
   (['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] as const).map(
@@ -391,6 +392,57 @@ export const demoClubs: Club[] = [
       description: 'A social wellness club is coming to Moorgate.',
     },
   },
+  {
+    _id: MARYLEBONE_ID,
+    name: 'Linden Marylebone',
+    slug: 'linden-marylebone',
+    market: demoMarket,
+    tier: 'social-wellness',
+    status: 'coming-soon',
+    address: {
+      streetAddress: '3 Linden Yard',
+      locality: 'Marylebone, London',
+      postalCode: 'W1U 4AB',
+      country: 'GB',
+    },
+    geo: { lat: 51.5202, lng: -0.1527 },
+    openingHours: everyDay('06:30', '22:00', ['08:00', '20:00']),
+    phone: '020 7946 0571',
+    facilities: [
+      {
+        name: 'Reformer studio',
+        category: 'studio',
+        description: 'Small-group reformer Pilates in a daylit studio.',
+      },
+      { name: 'Strength room', category: 'gym', description: 'Racks, free weights and rowers.' },
+      { name: 'Sauna', category: 'spa', description: 'A cedar sauna with a garden view.' },
+      { name: 'Cold plunge', category: 'recovery', description: 'Two cold plunge pools.' },
+      {
+        name: "Members' lounge",
+        category: 'cowork',
+        description: 'A quiet lounge with desks and a coffee bar.',
+      },
+    ],
+    spaces: [],
+    schedule: [],
+    timeZone: 'Europe/London',
+    facts: [
+      { label: 'Opening', value: 'The club is coming soon and has not opened yet.' },
+      {
+        label: 'Founding members',
+        value: 'Founding memberships are on sale before opening, and places are limited.',
+      },
+      { label: 'Parking', value: 'There is no parking. Baker Street station is nearby.' },
+      { label: 'Towels', value: 'Towels are provided.' },
+      { label: 'Minimum age', value: 'Members must be 18 or over.' },
+      { label: 'Accessibility', value: 'Step-free access throughout.' },
+    ],
+    seo: {
+      title: 'Linden Marylebone — coming soon',
+      description:
+        'A social wellness club is coming to Marylebone, with reformer Pilates, a sauna and cold plunge pools. Founding places are on sale now.',
+    },
+  },
 ]
 
 const img = (file: string, alt: string, width = 1600, height = 1200) => ({
@@ -603,6 +655,61 @@ export const demoPages: DemoClubPage[] = [
       },
     ],
   },
+  {
+    _id: 'clubPage-linden-marylebone',
+    clubId: MARYLEBONE_ID,
+    title: 'Linden Marylebone',
+    updatedAt: '2026-09-27T09:00:00Z',
+    seo: {
+      title: 'Linden Marylebone — founding membership now open',
+      description:
+        'A social wellness club is coming to Marylebone. Founding members get a fixed first-year rate and no joining fee, while places last.',
+    },
+    blocks: [
+      {
+        _type: 'heroBlock',
+        _key: 'hero',
+        eyebrow: 'Marylebone · Coming soon',
+        heading: 'A new club is coming to Marylebone',
+        subheading:
+          'Reformer Pilates, a cedar sauna and cold plunge pools, a few minutes from Baker Street. Founding places are on sale before we open.',
+        image: demoImages.gardenBreath,
+        primaryCta: { label: 'Become a founding member', target: 'url', url: '#founding' },
+        periodVariants: [],
+      },
+      {
+        _type: 'foundingBlock',
+        _key: 'founding',
+        eyebrow: 'Founding membership',
+        heading: 'Be one of the first 150 members',
+        offer:
+          'Founding members pay a fixed rate for their first year, with no joining fee, and get first choice of classes when the club opens.',
+        pricePerMonth: '195',
+        joiningFee: '0',
+        totalPlaces: 150,
+      },
+      {
+        _type: 'facilitiesBlock',
+        _key: 'facilities',
+        heading: 'What’s inside',
+        intro: 'Everything you need for a calm, strong week, under one roof.',
+        facilities: [],
+      },
+      {
+        _type: 'tourBookingBlock',
+        _key: 'tour',
+        heading: 'Book a hard-hat preview',
+        intro: 'See the club before it opens. Tell us when suits you and the team will confirm.',
+      },
+      {
+        _type: 'faqBlock',
+        _key: 'faq',
+        heading: 'Questions, answered',
+        intro: 'What people ask about the new club. If yours is not here, ask it below.',
+        allowQuestions: true,
+      },
+    ],
+  },
 ]
 
 export type DemoFaq = {
@@ -635,6 +742,27 @@ const moorgateFaqs: DemoFaq[] = [
 ].map(([id, question, answer], i) => ({
   _id: `faq-moorgate-${id}`,
   clubId: MOORGATE_ID,
+  question: question!,
+  answer: answer!,
+  status: 'approved' as const,
+  source: 'editor' as const,
+  askedCount: 5 - i,
+}))
+
+/** Marylebone's approved answers, from its facts only. */
+const maryleboneFaqs: DemoFaq[] = [
+  [
+    'open',
+    'Is the club open yet?',
+    'Not yet. The club is coming soon, and founding memberships are on sale before it opens.',
+  ],
+  ['parking', 'Is there parking?', 'There is no parking. Baker Street station is nearby.'],
+  ['towels', 'Are towels provided?', 'Yes, towels are provided.'],
+  ['age', 'How old do I need to be to join?', 'Members must be 18 or over.'],
+  ['access', 'Is the club accessible?', 'The club has step-free access throughout.'],
+].map(([id, question, answer], i) => ({
+  _id: `faq-marylebone-${id}`,
+  clubId: MARYLEBONE_ID,
   question: question!,
   answer: answer!,
   status: 'approved' as const,
@@ -693,4 +821,5 @@ export const demoFaqs: DemoFaq[] = [
     askedCount: 4,
   },
   ...moorgateFaqs,
+  ...maryleboneFaqs,
 ]

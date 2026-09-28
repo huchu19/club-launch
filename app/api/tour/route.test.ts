@@ -35,7 +35,11 @@ const valid = () => ({
 
 beforeEach(() => {
   resetDemoStore()
-  adapter = { name: 'test', submitLead: vi.fn(async () => ({ id: 'TOUR-TEST01' })) }
+  adapter = {
+    name: 'test',
+    submitLead: vi.fn(async () => ({ id: 'TOUR-TEST01' })),
+    submitFoundingMember: vi.fn(async () => ({ id: 'FOUND-TEST01' })),
+  }
   vi.spyOn(console, 'info').mockImplementation(() => {})
   vi.spyOn(console, 'warn').mockImplementation(() => {})
   vi.spyOn(console, 'error').mockImplementation(() => {})

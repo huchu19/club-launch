@@ -109,11 +109,20 @@ export function readinessChecks({
     else if (entry.opens >= entry.closes) hourProblems.push(`${day} closes before it opens`)
   }
 
-  const plans = blocks
-    .filter((block) => block._type === 'ratesBlock')
-    .flatMap(
-      (block) => (block.plans as Array<{ name?: string; joiningFee?: string }> | undefined) ?? [],
-    )
+  // Rate plans and founding offers both show prices, so both must show a joining fee.
+  const plans = [
+    ...blocks
+      .filter((block) => block._type === 'ratesBlock')
+      .flatMap(
+        (block) => (block.plans as Array<{ name?: string; joiningFee?: string }> | undefined) ?? [],
+      ),
+    ...blocks
+      .filter((block) => block._type === 'foundingBlock')
+      .map((block) => ({
+        name: block.heading,
+        joiningFee: block.joiningFee as string | undefined,
+      })),
+  ]
   const feeProblems = plans
     .filter((plan) => !plan.joiningFee || !isNumeric(plan.joiningFee))
     .map((plan) => `Add the joining fee to "${plan.name ?? 'a plan'}"`)

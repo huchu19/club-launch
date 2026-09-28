@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { submitLeadWithRetry, type CrmAdapter, type Lead } from './adapter'
+import { submitLeadWithRetry, withOneRetry, type CrmAdapter, type Lead } from './adapter'
 import { MockCrmAdapter } from './mock'
 
 const lead: Lead = {
@@ -20,6 +20,9 @@ function flakyAdapter(failures: number): CrmAdapter & { calls: number } {
       this.calls += 1
       if (this.calls <= failures) throw new Error(`failure ${this.calls}`)
       return { id: 'LEAD-1' }
+    },
+    async submitFoundingMember() {
+      return { id: 'FOUND-1' }
     },
   }
 }
@@ -75,9 +78,38 @@ describe('MockCrmAdapter', () => {
     for (const secret of ['Sam', 'sam@example.com', '7946']) expect(line).not.toContain(secret)
   })
 
+  it('logs a founding member without personal data', async () => {
+    const info = vi.spyOn(console, 'info').mockImplementation(() => {})
+    const { id } = await new MockCrmAdapter().submitFoundingMember({
+      clubSlug: 'linden-marylebone',
+      name: 'Sam Rivera',
+      email: 'sam@example.com',
+      phone: '020 7946 0000',
+      consentedAt: '2026-09-28T10:00:00.000Z',
+    })
+    expect(id).toMatch(/^FOUND-[A-Z2-9]{6}$/)
+    const line = String(info.mock.calls[0]?.[0])
+    expect(line).toContain('club=linden-marylebone')
+    for (const secret of ['Sam', 'sam@example.com', '7946']) expect(line).not.toContain(secret)
+  })
+
   it('validates the lead', async () => {
     await expect(
       new MockCrmAdapter().submitLead({ lead: { ...lead, email: 'nope' } }),
     ).rejects.toThrow()
+  })
+})
+
+describe('withOneRetry', () => {
+  it('retries once, then rethrows', async () => {
+    vi.spyOn(console, 'warn').mockImplementation(() => {})
+    let calls = 0
+    await expect(
+      withOneRetry('test', async () => {
+        calls += 1
+        throw new Error(`failure ${calls}`)
+      }),
+    ).rejects.toThrow('failure 2')
+    expect(calls).toBe(2)
   })
 })

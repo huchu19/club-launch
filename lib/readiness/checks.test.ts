@@ -39,6 +39,25 @@ describe('launch readiness', () => {
     expect(readinessScore(checks)).toBe(100)
   })
 
+  it('passes the coming-soon Marylebone page, founding offer included, at 100%', () => {
+    const marylebone = demoClubs[2]!
+    const page = demoPages.find((p) => p.clubId === marylebone._id)!
+    const checks = readinessChecks({
+      page: {
+        title: page.title,
+        seo: page.seo,
+        blocks: toSanityBlocks(page.blocks, (image) => ({
+          _type: 'image',
+          asset: { _type: 'reference', _ref: 'image-x' },
+          alt: image.alt,
+        })),
+      },
+      club: marylebone,
+      approvedFaqCount: 5,
+    })
+    expect(checks.filter((c) => !c.ok)).toEqual([])
+  })
+
   it('shows exactly which checks the Moorgate draft fails', () => {
     const prompt = buildDrafterPrompt(moorgate, 'Announce the conversion.', 'calm')
     const draft = draftOutputSchema.parse(mockDraftFor(prompt))
@@ -109,6 +128,21 @@ describe('launch readiness', () => {
     rates.plans[1]!.joiningFee = undefined
     expect(readinessChecks(input({ page })).find((c) => c.id === 'joiningFee')!.problems).toEqual([
       'Add the joining fee to "Club and workspace"',
+    ])
+  })
+
+  it('joining fee: a founding offer counts too, and 0 ("no joining fee") is fine', () => {
+    const page = mayfairPage()
+    page.blocks.push({
+      _type: 'foundingBlock',
+      _key: 'f',
+      heading: 'Founding offer',
+      joiningFee: '0',
+    } as never)
+    expect(failing(input({ page }))).toEqual([])
+    ;(page.blocks.at(-1) as { joiningFee?: string }).joiningFee = undefined
+    expect(readinessChecks(input({ page })).find((c) => c.id === 'joiningFee')!.problems).toEqual([
+      'Add the joining fee to "Founding offer"',
     ])
   })
 

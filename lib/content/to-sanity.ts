@@ -59,6 +59,7 @@ export function toSanityBlock(block: PageBlock, resolveImage: ImageResolver = no
     case 'calculatorBlock':
     case 'clubMapBlock':
     case 'busynessBlock':
+    case 'foundingBlock':
       return { ...block }
   }
 }
