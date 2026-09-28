@@ -223,11 +223,20 @@ export function describeLevel(level: number): BusynessLevel {
   return 'busy'
 }
 
-/** The quietest open hour of the day (the earliest, if tied), or null if closed all day. */
-export function quietestHour(day: HourlyBusyness): { hour: number; level: number } | null {
+/**
+ * The quietest open hour of the day (the earliest, if tied), or null if closed
+ * all day. With `skipEdges`, the first and last open hours are left out when
+ * there are enough others: "just after opening" is quiet but rarely useful advice.
+ */
+export function quietestHour(
+  day: HourlyBusyness,
+  { skipEdges = false } = {},
+): { hour: number; level: number } | null {
+  const open = day.filter((h): h is { hour: number; level: number } => h.level !== null)
+  const candidates = skipEdges && open.length >= 4 ? open.slice(1, -1) : open
   let best: { hour: number; level: number } | null = null
-  for (const { hour, level } of day) {
-    if (level !== null && (best === null || level < best.level)) best = { hour, level }
+  for (const hour of candidates) {
+    if (best === null || hour.level < best.level) best = hour
   }
   return best
 }

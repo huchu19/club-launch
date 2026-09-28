@@ -203,6 +203,21 @@ was checked for AA against each tint at full strength, in light and dark.
 The trade-off: the period can lag by up to the 15-minute regeneration window. A client-side
 script could switch it exactly, but at the cost of a flash or hydration workarounds.
 
+### Busyness forecast
+
+Busyness is simulated, and labelled as illustrative wherever it appears.
+`lib/busyness/generator.ts` builds a typical level (0–100, in steps of 5) for each space, hour
+and weekday from a curve per kind of space (morning and after-work peaks in the gym, a quiet
+mid-afternoon, the spa busiest in the evening and at weekends) plus a little noise from a seeded
+random number generator. The seed is the club, space and day, so the numbers are the same on
+the server and in the browser, and in every test run. Hours when the space is closed are empty.
+
+The same figures feed three places: the busyness block (small column charts per space, the
+quietest hour highlighted, a summary line and a hidden table), the map's details panel ("usually
+quiet at this time"), and the planner's grounding context, which lists each space's quietest
+hours so the model can avoid crowds when asked. Replacing the generator with real gate-entry
+data would change one module.
+
 ### Shared day plans
 
 "Share my day" uses the device's share sheet (`navigator.share`) or copies the link to

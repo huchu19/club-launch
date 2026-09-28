@@ -63,5 +63,15 @@ describe('busyness generator', () => {
       ]),
     ).toEqual({ hour: 8, level: 20 })
     expect(quietestHour([{ hour: 6, level: null }])).toBeNull()
+    // Skipping the first and last open hour, when there are enough others.
+    const edges = [
+      { hour: 6, level: 5 },
+      { hour: 7, level: 40 },
+      { hour: 8, level: 30 },
+      { hour: 9, level: 50 },
+      { hour: 10, level: 0 },
+    ]
+    expect(quietestHour(edges, { skipEdges: true })).toEqual({ hour: 8, level: 30 })
+    expect(quietestHour(edges.slice(0, 3), { skipEdges: true })).toEqual({ hour: 6, level: 5 })
   })
 })

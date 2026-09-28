@@ -107,7 +107,7 @@ function SpaceChart({
   dayLabel: string
 }) {
   const captionId = useId()
-  const quietest = quietestHour(hours)
+  const quietest = quietestHour(hours, { skipEdges: true })
   const busiest = busiestHour(hours)
   return (
     <figure aria-labelledby={captionId}>
