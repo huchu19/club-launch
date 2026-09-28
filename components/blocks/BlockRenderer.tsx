@@ -1,3 +1,4 @@
+import { periodHighlights, type Period } from '@/lib/atmosphere/period'
 import { pricedPlansOf } from '@/lib/content/rate-plans'
 import {
   clubPath,
@@ -33,7 +34,7 @@ const anchors: Record<PageBlockType, string> = {
  * Renders a club page's blocks in order. Each Sanity block type maps
  * one-to-one to a component of the same name (docs/SPEC.md §3).
  */
-export function BlockRenderer({ page }: { page: ClubPageData }) {
+export function BlockRenderer({ page, period }: { page: ClubPageData; period?: Period }) {
   const { club } = page
   const seen = new Set<PageBlockType>()
   const tourSectionId = page.blocks.some((b) => b._type === 'tourBookingBlock')
@@ -42,6 +43,12 @@ export function BlockRenderer({ page }: { page: ClubPageData }) {
   const plannerSectionId = page.blocks.some((b) => b._type === 'conciergeBlock')
     ? anchors.conciergeBlock
     : undefined
+  // The hero points to a different section at each time of day, if the page has it.
+  const highlight = period ? periodHighlights[period].section : undefined
+  const highlightHref =
+    highlight && page.blocks.some((b) => anchors[b._type] === highlight)
+      ? `#${highlight}`
+      : undefined
 
   return (
     <>
@@ -63,7 +70,14 @@ export function BlockRenderer({ page }: { page: ClubPageData }) {
     switch (block._type) {
       case 'heroBlock':
         return (
-          <HeroBlock key={block._key} id={ctx.id} headingLevel={ctx.isFirst ? 1 : 2} {...block} />
+          <HeroBlock
+            key={block._key}
+            id={ctx.id}
+            headingLevel={ctx.isFirst ? 1 : 2}
+            period={period}
+            highlightHref={highlightHref}
+            {...block}
+          />
         )
       case 'facilitiesBlock':
         return (

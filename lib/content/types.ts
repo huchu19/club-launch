@@ -67,6 +67,18 @@ export type Facility = z.infer<typeof facilitySchema>
 
 const keyed = { _key: z.string() }
 
+export const dayPeriods = ['morning', 'midday', 'evening', 'night'] as const
+
+/** Hero wording for one time of day; anything left empty falls back to the default. */
+export const heroPeriodVariantSchema = z.object({
+  period: z.enum(dayPeriods),
+  eyebrow: opt(z.string()),
+  subheading: opt(z.string()),
+  /** Label for the link to the section highlighted at this time of day. */
+  highlightLabel: opt(z.string()),
+})
+export type HeroPeriodVariant = z.infer<typeof heroPeriodVariantSchema>
+
 export const heroBlockSchema = z.object({
   _type: z.literal('heroBlock'),
   ...keyed,
@@ -75,6 +87,7 @@ export const heroBlockSchema = z.object({
   subheading: opt(z.string()),
   image: optionalImage,
   primaryCta: opt(ctaSchema),
+  periodVariants: list(heroPeriodVariantSchema),
 })
 
 export const facilitiesBlockSchema = z.object({

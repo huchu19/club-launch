@@ -104,7 +104,9 @@ sequenceDiagram
 ```
 
 Tags are deliberately coarse, keyed by document type and club, which is always correct and cheap
-at this scale. The route rejects unsigned requests (401) and fails closed if the secret is not set
+at this scale. Club pages also regenerate at most every 15 minutes (`revalidate = 900`) so the
+time-of-day hero follows the club's clock; the cached data they read stays cached until a
+webhook expires it. The route rejects unsigned requests (401) and fails closed if the secret is not set
 (503).
 
 ### Draft mode preview
@@ -186,6 +188,20 @@ physiotherapist, even if the model forgot.
 tour form, which shows that the plan is attached and lets the visitor remove it. The tour route
 loads the plan by id, checks it belongs to the same club, and passes `{ lead, dayPlan }` to the
 CRM adapter. The model runs before any contact details exist, so it never sees them.
+
+### Time-of-day atmosphere
+
+`lib/atmosphere/period.ts` maps the club's local hour (from its IANA time zone) to morning
+06–11, midday 11–16, evening 16–22 or night. The club page works out the period on the server
+and passes it down, so the right wording is in the HTML and nothing changes after hydration.
+The hero uses the editor's wording for that period where set (falling back to the default),
+a gradient from a period tint token into the page colour, and a link to the section suited to
+that time: the map in the morning, the first-day planner at midday and at night, spa and
+recovery in the evening. The link only appears if the page has that section. Every text colour
+was checked for AA against each tint at full strength, in light and dark.
+
+The trade-off: the period can lag by up to the 15-minute regeneration window. A client-side
+script could switch it exactly, but at the cost of a flash or hydration workarounds.
 
 ### Shared day plans
 

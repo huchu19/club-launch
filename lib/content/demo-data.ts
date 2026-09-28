@@ -451,6 +451,32 @@ export const demoPages: DemoClubPage[] = [
           'Train, recover and work under one roof. Linden Mayfair has been rebuilt around a thermal suite, a garden kitchen and a calm, naturally lit pool.',
         image: demoImages.heroArches,
         primaryCta: { label: 'Book a tour', target: 'tour' },
+        periodVariants: [
+          {
+            period: 'morning',
+            eyebrow: 'Mayfair · Good morning',
+            subheading:
+              'Start slowly: mobility in the studio, a few calm lengths, breakfast in the garden kitchen. The club opens at 06:00 on weekdays.',
+          },
+          {
+            period: 'midday',
+            eyebrow: 'Mayfair · Midday',
+            subheading:
+              'A quiet desk, an express class at lunchtime, a seasonal lunch. The middle of the day is the calmest time at the club.',
+          },
+          {
+            period: 'evening',
+            eyebrow: 'Mayfair · This evening',
+            subheading:
+              'Leave the day at the door: a guided contrast circuit, then the thermal suite looking out onto the garden.',
+          },
+          {
+            period: 'night',
+            eyebrow: 'Mayfair · Until tomorrow',
+            subheading:
+              'The club is quiet now and opens again early. Plan your first day, and book a tour when it suits you.',
+          },
+        ],
       },
       {
         _type: 'facilitiesBlock',

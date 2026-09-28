@@ -7,8 +7,9 @@
 //   pnpm seed --reset    also delete Moorgate pages (incl. drafts) and AI-drafted
 //                        FAQ items, to rehearse the live demo from a clean slate
 //   pnpm seed --update   only add what is missing: new documents, new top-level
-//                        fields and new page blocks. Never overwrites edits made
-//                        in the Studio, so it is safe to run against production.
+//                        fields, new page blocks and new fields in existing
+//                        blocks. Never overwrites edits made in the Studio, so
+//                        it is safe to run against production.
 import { createReadStream, existsSync } from 'node:fs'
 import path from 'node:path'
 import { createClient } from '@sanity/client'
@@ -81,7 +82,21 @@ async function addMissing(docs: SeedDocument[]) {
     const seedBlocks = (doc.blocks as Keyed[] | undefined) ?? []
     const present = new Set(((current.blocks as Keyed[] | undefined) ?? []).map((b) => b._key))
     if (!current.blocks) return
+    const currentBlocks = (current.blocks as Array<Keyed & Record<string, unknown>>) ?? []
     seedBlocks.forEach((block, i) => {
+      const existingBlock = currentBlocks.find((b) => b._key === block._key)
+      if (existingBlock) {
+        // New fields inside a block the page already has (e.g. the hero's time-of-day wording).
+        const fields = Object.entries(block).filter(
+          ([key]) => !key.startsWith('_') && existingBlock[key] === undefined,
+        )
+        for (const [key, value] of fields) {
+          tx.patch(doc._id, (p) =>
+            p.setIfMissing({ [`blocks[_key=="${block._key}"].${key}`]: value }),
+          )
+          changes.push(`${doc._id}: added ${key} to block ${block._key}`)
+        }
+      }
       if (present.has(block._key)) return
       const before = seedBlocks
         .slice(0, i)

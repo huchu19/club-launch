@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/nextjs-vite'
+import { expect, waitFor } from 'storybook/test'
 import { dark, mobile } from '../../.storybook/globals'
 import { HeroBlock } from './HeroBlock'
 import { blockOf } from './story-fixtures'
@@ -30,3 +31,44 @@ export const LongText: Story = {
   },
 }
 export const WithoutCallToAction: Story = { args: { primaryCta: undefined, eyebrow: undefined } }
+
+// Time of day. Each period runs axe in light and dark, so the tint keeps AA contrast.
+const inPeriod = (period: 'morning' | 'midday' | 'evening' | 'night', href: string) => ({
+  args: { period, highlightHref: href },
+})
+
+export const Morning: Story = {
+  ...inPeriod('morning', '#map'),
+  play: async ({ canvas }) => {
+    // The hero's content fades in.
+    await waitFor(() => expect(canvas.getByText('Mayfair · Good morning')).toBeVisible())
+    await expect(canvas.getByRole('link', { name: 'See this morning’s classes' })).toHaveAttribute(
+      'href',
+      '#map',
+    )
+  },
+}
+export const MorningDark: Story = { ...inPeriod('morning', '#map'), globals: dark }
+export const Midday: Story = inPeriod('midday', '#plan-your-day')
+export const MiddayDark: Story = { ...inPeriod('midday', '#plan-your-day'), globals: dark }
+export const Evening: Story = {
+  ...inPeriod('evening', '#recovery'),
+  play: async ({ canvas }) => {
+    await waitFor(() => expect(canvas.getByText('Mayfair · This evening')).toBeVisible())
+    await waitFor(() =>
+      expect(canvas.getByRole('link', { name: 'Spa and recovery this evening' })).toBeVisible(),
+    )
+  },
+}
+export const EveningDark: Story = { ...inPeriod('evening', '#recovery'), globals: dark }
+export const Night: Story = inPeriod('night', '#plan-your-day')
+export const NightDark: Story = { ...inPeriod('night', '#plan-your-day'), globals: dark }
+export const EveningMobile: Story = { ...inPeriod('evening', '#recovery'), globals: mobile }
+
+/** Without a variant for the period, the default wording shows. */
+export const PeriodWithoutVariant: Story = {
+  args: { period: 'evening', periodVariants: [] },
+  play: async ({ canvas }) => {
+    await waitFor(() => expect(canvas.getByText(hero.eyebrow!)).toBeVisible())
+  },
+}
