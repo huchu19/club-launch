@@ -12,6 +12,7 @@ import {
   type ConciergeResponse,
   type DayPlanView,
 } from '@/lib/concierge/protocol'
+import { onConciergePrefill } from '@/lib/concierge/prefill'
 import { shareDayPlan } from '@/lib/concierge/shared-plan-store'
 import { formatPrice } from '@/lib/format'
 
@@ -81,6 +82,19 @@ export function ConciergePlanner({
   useEffect(() => {
     if (state.kind === 'planned') resultRef.current?.focus()
   }, [state])
+
+  // "Add to my day" from the club map: add the space to the message and focus it.
+  useEffect(
+    () =>
+      onConciergePrefill((text) => {
+        setState((current) => (current.kind === 'loading' ? current : { kind: 'idle' }))
+        setMessage((current) =>
+          current.includes(text) ? current : `${current.trim()} ${text}`.trim(),
+        )
+        requestAnimationFrame(() => inputRef.current?.focus({ preventScroll: true }))
+      }),
+    [],
+  )
 
   const toggle = (chip: string) =>
     setSelected((current) =>

@@ -38,6 +38,28 @@ function clubDocument(club: Club) {
         ...h,
       })),
     })),
+    timeZone: club.timeZone,
+    clubMap: club.clubMap
+      ? {
+          _type: 'clubMap',
+          viewBox: club.clubMap.viewBox,
+          floors: club.clubMap.floors.map((floor, f) => ({
+            _key: `floor-${f}`,
+            _type: 'mapFloor',
+            name: floor.name,
+            zones: floor.zones.map((zone) => ({
+              _key: zone.spaceId,
+              _type: 'mapZone',
+              ...zone,
+            })),
+            features: floor.features.map((feature, i) => ({
+              _key: `feature-${i}`,
+              _type: 'mapFeature',
+              ...feature,
+            })),
+          })),
+        }
+      : undefined,
     schedule: club.schedule.map((entry) => ({
       _key: `${entry.day.slice(0, 3).toLowerCase()}-${entry.time.replace(':', '')}-${entry.spaceId}`,
       _type: 'scheduleEntry',

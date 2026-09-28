@@ -2,6 +2,7 @@ import { pricedPlansOf } from '@/lib/content/rate-plans'
 import type { ClubPageData, PageBlock, PageBlockType } from '@/lib/content/types'
 import { groupOpeningHours } from '@/lib/format'
 import { CalculatorBlock } from './CalculatorBlock'
+import { ClubMapBlock } from './ClubMapBlock'
 import { ConciergeBlock } from './ConciergeBlock'
 import { FacilitiesBlock } from './FacilitiesBlock'
 import { FaqBlock } from './FaqBlock'
@@ -20,6 +21,7 @@ const anchors: Record<PageBlockType, string> = {
   faqBlock: 'faq',
   conciergeBlock: 'plan-your-day',
   calculatorBlock: 'cost',
+  clubMapBlock: 'map',
 }
 
 /**
@@ -31,6 +33,9 @@ export function BlockRenderer({ page }: { page: ClubPageData }) {
   const seen = new Set<PageBlockType>()
   const tourSectionId = page.blocks.some((b) => b._type === 'tourBookingBlock')
     ? anchors.tourBookingBlock
+    : undefined
+  const plannerSectionId = page.blocks.some((b) => b._type === 'conciergeBlock')
+    ? anchors.conciergeBlock
     : undefined
 
   return (
@@ -135,6 +140,18 @@ export function BlockRenderer({ page }: { page: ClubPageData }) {
             comparisons={club.market.comparisonItems}
             locale={club.market.locale}
             currency={club.market.currency}
+          />
+        )
+      case 'clubMapBlock':
+        return (
+          <ClubMapBlock
+            key={block._key}
+            id={ctx.id}
+            eyebrow={block.eyebrow}
+            heading={block.heading}
+            intro={block.intro}
+            club={club}
+            plannerSectionId={plannerSectionId}
           />
         )
       default: {

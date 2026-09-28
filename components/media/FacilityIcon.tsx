@@ -45,6 +45,11 @@ const paths: Record<FacilityCategory, React.ReactNode> = {
   ),
 }
 
+/** The icon's strokes, for drawing inside another SVG (24 × 24 units). */
+export function facilityIconPaths(category: FacilityCategory): React.ReactNode {
+  return paths[category]
+}
+
 export const facilityCategoryLabels: Record<FacilityCategory, string> = {
   gym: 'Gym',
   spa: 'Spa',
