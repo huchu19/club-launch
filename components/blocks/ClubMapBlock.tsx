@@ -6,7 +6,10 @@ import type { Club, ClubMapBlockData } from '@/lib/content/types'
 import { ClubMap } from './ClubMap'
 
 export type ClubMapBlockProps = Omit<ClubMapBlockData, '_type' | '_key'> & {
-  club: Pick<Club, 'name' | 'clubMap' | 'spaces' | 'schedule' | 'openingHours' | 'timeZone'>
+  club: Pick<
+    Club,
+    'name' | 'slug' | 'clubMap' | 'spaces' | 'schedule' | 'openingHours' | 'timeZone'
+  >
   /** Id of the page's first-day planner, for "Add to my day". */
   plannerSectionId?: string
   /** Fix the clock (Storybook, tests). */
@@ -38,6 +41,7 @@ export function ClubMapBlock({
       <Card elevation="raised" className="mt-12">
         <ClubMap
           clubName={club.name}
+          clubSlug={club.slug}
           map={club.clubMap}
           spaces={club.spaces}
           schedule={club.schedule}

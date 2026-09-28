@@ -3,12 +3,13 @@ import { draftMode } from 'next/headers'
 import { notFound } from 'next/navigation'
 import { BlockRenderer } from '@/components/blocks/BlockRenderer'
 import { JsonLd } from '@/components/seo/JsonLd'
-import { periodAt } from '@/lib/atmosphere/period'
+import { periodOfHour } from '@/lib/atmosphere/period'
 import { getContentRepository } from '@/lib/content'
 import { clubPath } from '@/lib/content/types'
 import { healthClubJsonLd } from '@/lib/seo/jsonld'
 import { clubPageDescription, clubPageImage, clubPageMetadata } from '@/lib/seo/metadata'
 import { absoluteUrl } from '@/lib/site'
+import { localMoment } from '@/lib/time/local-time'
 
 type Params = { market: string; slug: string }
 
@@ -38,6 +39,8 @@ export default async function ClubPage({ params }: Props) {
   if (!page) notFound()
 
   const url = absoluteUrl(clubPath(page.club.market.code, page.club.slug))
+  // The club's own clock, read at render time (the page regenerates every 15 minutes).
+  const moment = localMoment(new Date(), page.club.timeZone)
   return (
     <>
       <JsonLd
@@ -47,7 +50,7 @@ export default async function ClubPage({ params }: Props) {
           description: clubPageDescription(page),
         })}
       />
-      <BlockRenderer page={page} period={periodAt(new Date(), page.club.timeZone)} />
+      <BlockRenderer page={page} period={periodOfHour(moment.hour)} today={moment.day} />
     </>
   )
 }

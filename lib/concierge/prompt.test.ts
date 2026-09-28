@@ -17,6 +17,13 @@ describe('conciergeContext', () => {
     expect(text).not.toContain(mayfair.address.postalCode)
   })
 
+  it('gives each space its typical quiet times for weekdays and weekends', () => {
+    for (const space of context.spaces) {
+      expect(space.quietTimes.weekdays.every((t) => /^\d\d:00$/.test(t))).toBe(true)
+      expect(space.quietTimes.weekends.length).toBeGreaterThan(0)
+    }
+  })
+
   it('only lists hours for spaces that differ from the club', () => {
     expect(context.spaces.find((s) => s.id === 'pool')).not.toHaveProperty('openingHours')
     expect(context.spaces.find((s) => s.id === 'workspace')).toHaveProperty('openingHours')

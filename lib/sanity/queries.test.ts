@@ -75,6 +75,7 @@ describe('GROQ queries over the seeded dataset', () => {
       'heroBlock',
       'facilitiesBlock',
       'clubMapBlock',
+      'busynessBlock',
       'conciergeBlock',
       'spaRecoveryBlock',
       'ratesBlock',
