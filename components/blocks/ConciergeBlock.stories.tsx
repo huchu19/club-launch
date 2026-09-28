@@ -82,6 +82,25 @@ export const BookTourForThisDay: Story = {
   },
 }
 
+/** "Share my day" opens the device's share sheet with the plan's link. */
+export const ShareMyDay: Story = {
+  args: { sharePath: `/uk/clubs/${mayfair.slug}/day` },
+  play: async (context) => {
+    const share = fn(async () => {})
+    Object.defineProperty(navigator, 'share', { value: share, configurable: true })
+    try {
+      await Result.play!(context)
+      await userEvent.click(context.canvas.getByRole('button', { name: 'Share my day' }))
+      await expect(share).toHaveBeenCalledWith({
+        title: 'My Wednesday at Linden Mayfair',
+        url: `${window.location.origin}/uk/clubs/${mayfair.slug}/day/${samplePlan.id}`,
+      })
+    } finally {
+      Reflect.deleteProperty(navigator, 'share')
+    }
+  },
+}
+
 export const HealthCaveat: Story = {
   args: {
     plan: fn<PlanDay>(async () => ({

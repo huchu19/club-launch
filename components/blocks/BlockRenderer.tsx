@@ -1,5 +1,10 @@
 import { pricedPlansOf } from '@/lib/content/rate-plans'
-import type { ClubPageData, PageBlock, PageBlockType } from '@/lib/content/types'
+import {
+  clubPath,
+  type ClubPageData,
+  type PageBlock,
+  type PageBlockType,
+} from '@/lib/content/types'
 import { groupOpeningHours } from '@/lib/format'
 import { CalculatorBlock } from './CalculatorBlock'
 import { ClubMapBlock } from './ClubMapBlock'
@@ -124,6 +129,7 @@ export function BlockRenderer({ page }: { page: ClubPageData }) {
             locale={club.market.locale}
             currency={club.market.currency}
             tourSectionId={tourSectionId}
+            sharePath={`${clubPath(club.market.code, club.slug)}/day`}
           />
         )
       case 'calculatorBlock':
