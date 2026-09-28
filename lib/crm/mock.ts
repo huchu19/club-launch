@@ -1,11 +1,20 @@
-import { leadSchema, type CrmAdapter, type LeadSubmission } from './adapter'
+import {
+  foundingMemberSchema,
+  leadSchema,
+  type CrmAdapter,
+  type FoundingMember,
+  type LeadSubmission,
+} from './adapter'
 
 const ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
 
-export function tourReference(): string {
+function reference(prefix: string): string {
   const bytes = crypto.getRandomValues(new Uint8Array(6))
-  return `TOUR-${Array.from(bytes, (b) => ALPHABET[b % ALPHABET.length]).join('')}`
+  return `${prefix}-${Array.from(bytes, (b) => ALPHABET[b % ALPHABET.length]).join('')}`
 }
+
+export const tourReference = () => reference('TOUR')
+export const foundingReference = () => reference('FOUND')
 
 /**
  * Validates the lead and logs one redacted line: no name, email or phone ever
@@ -23,6 +32,15 @@ export class MockCrmAdapter implements CrmAdapter {
       : ''
     console.info(
       `[crm:mock] lead ${id} club=${valid.clubSlug} date=${valid.preferredDate} slot=${valid.timeSlot} phone=${valid.phone ? 'yes' : 'no'}${plan}`,
+    )
+    return { id }
+  }
+
+  async submitFoundingMember(member: FoundingMember): Promise<{ id: string }> {
+    const valid = foundingMemberSchema.parse(member)
+    const id = foundingReference()
+    console.info(
+      `[crm:mock] founding member ${id} club=${valid.clubSlug} phone=${valid.phone ? 'yes' : 'no'}`,
     )
     return { id }
   }

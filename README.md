@@ -57,6 +57,12 @@ actually ask.
   separately at typical local prices (edited per market in the CMS and labelled as
   illustrative), and always shows the joining fee spread over the first year. The arithmetic is
   a pure, unit-tested module; the chart is plain HTML with a screen-reader table.
+- **Founding member pre-sale.** Clubs that haven't opened yet (the demo's Linden Marylebone) can
+  sell founding places: the offer, a live "places left" count, and a signup that goes through the
+  CRM adapter with the tour form's validation, honeypot and rate limit. Places are claimed with
+  optimistic concurrency (Sanity's revision check), so two people can never take the last one;
+  if the CRM can't take a signup, the place is given back. At zero, the form closes and points
+  to a preview tour.
 - **Tour booking.** An accessible form that is validated on both client and server, with a
   honeypot, per-IP rate limiting, and a `CrmAdapter` interface that retries once. v1 ships a mock
   adapter that logs a redacted line.
@@ -171,7 +177,7 @@ that `pnpm seed` writes. CI, e2e and local development without credentials use t
 |---|---|---|
 | Unit (Vitest) | Schemas, normalisation, grounding context, prompt fencing, redaction, rate limiter, CRM retry, drafter retry, number guard, publish rule, day-plan validator and retry, health caveats, cost calculation edge cases, "what's on now" across time zones and midnight, floor-plan geometry, JSON-LD, webhook signatures, API routes | `**/*.test.ts` |
 | Component (Storybook + Vitest browser) | Every component in light, dark and mobile, with edge cases and interaction tests; any axe violation fails the build | `**/*.stories.tsx` |
-| End to end (Playwright + axe) | Keyboard-only tour booking; keyboard-only day planning and booking a tour for that day; the cost calculator with real arrow-key presses; the club map by keyboard and touch, with no layout shift and reduced motion; the time-of-day hero with no hydration warnings; the busyness charts by keyboard; the insights page behind admin auth, loading in under a second; shared day pages (plan only, noindex, the social image route) and the copy-link fallback; no sideways scrolling on a phone; health caveats and refusals; FAQ streaming, session-only pending answers, cache hits, refusals and the quota fallback; the drafter; admin auth | `e2e/` |
+| End to end (Playwright + axe) | Keyboard-only tour booking; keyboard-only day planning and booking a tour for that day; the cost calculator with real arrow-key presses; the club map by keyboard and touch, with no layout shift and reduced motion; the time-of-day hero with no hydration warnings; the busyness charts by keyboard; the insights page behind admin auth, loading in under a second; a keyboard-only founding signup; shared day pages (plan only, noindex, the social image route) and the copy-link fallback; no sideways scrolling on a phone; health caveats and refusals; FAQ streaming, session-only pending answers, cache hits, refusals and the quota fallback; the drafter; admin auth | `e2e/` |
 
 All AI calls in CI and e2e use `AI_MOCK=1`: deterministic fixtures that still run through the real
 AI SDK code (`MockLanguageModelV4`). A question or day-planning message containing "quota"

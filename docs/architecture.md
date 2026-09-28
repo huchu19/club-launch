@@ -273,6 +273,23 @@ separately in a recessive grey), with values at the bar tips in text colours and
 hidden table holding the full breakdown. HTML bars keep their labels at a readable size on a
 phone, where SVG text would scale down with the drawing.
 
+### Founding member pre-sale
+
+A `foundingBlock` (offer, price, joining fee, total places) only accepts signups for clubs whose
+status is "coming soon". The count of places taken is a `foundingPlaces` document per club,
+written only by the site. `lib/founding/places.ts` claims a place optimistically: read the count
+and its revision, then write the count plus one only if the revision hasn't changed (Sanity's
+`ifRevisionId`; the very first write uses `create`, which fails if another request created the
+document first), and on a clash read again and retry. If the count has reached the total, the
+signup is refused as sold out. A unit test runs 40 parallel claims against 10 places and checks
+exactly 10 succeed; another runs through the API route with the last five places.
+
+`POST /api/founding` validates with the tour form's shared contact fields, rate limits, honours
+the honeypot (a fake success, no place taken), claims a place, then sends the signup to the CRM
+adapter (`submitFoundingMember`, retried once). If the CRM fails, the place is released. The
+page is static, so the count it renders can be up to 15 minutes old; the block fetches the live
+count from `GET /api/founding` once it has loaded.
+
 ### Launch readiness
 
 `lib/readiness/checks.ts` holds seven rules that run on raw Sanity documents: no placeholders,
@@ -362,6 +379,9 @@ demo content, so CI needs no secrets.
 - **Cost comparisons are shown, not claimed.** The typical prices are editable per market,
   labelled on the page as illustrative, and every assumption (each use counted once per visit,
   the joining fee spread over a year) is written out under the chart.
+- **Optimistic concurrency for founding places**, not a lock: the content store already offers
+  revision checks, contention is low, and a clash costs one retry. A shared lock service would
+  be a new paid dependency.
 - **Grouping without embeddings.** Word overlap with light stemming is explainable to a club
   manager, free, and good enough for a few hundred questions; embeddings are the next step if
   paraphrases with no shared words become common.

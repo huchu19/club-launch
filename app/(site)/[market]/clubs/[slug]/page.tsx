@@ -41,6 +41,10 @@ export default async function ClubPage({ params }: Props) {
   const url = absoluteUrl(clubPath(page.club.market.code, page.club.slug))
   // The club's own clock, read at render time (the page regenerates every 15 minutes).
   const moment = localMoment(new Date(), page.club.timeZone)
+  // Founding places at render time; the block refreshes the live count in the browser.
+  const foundingTaken = page.blocks.some((b) => b._type === 'foundingBlock')
+    ? (await getContentRepository().foundingPlaces.read(page.club._id)).taken
+    : 0
   return (
     <>
       <JsonLd
@@ -50,7 +54,12 @@ export default async function ClubPage({ params }: Props) {
           description: clubPageDescription(page),
         })}
       />
-      <BlockRenderer page={page} period={periodOfHour(moment.hour)} today={moment.day} />
+      <BlockRenderer
+        page={page}
+        period={periodOfHour(moment.hour)}
+        today={moment.day}
+        foundingTaken={foundingTaken}
+      />
     </>
   )
 }

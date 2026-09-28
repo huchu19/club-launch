@@ -1,6 +1,6 @@
 import { evaluate, parse } from 'groq-js'
 import { describe, expect, it } from 'vitest'
-import { demoImages, MAYFAIR_ID, MOORGATE_ID } from '@/lib/content/demo-data'
+import { demoImages, MARYLEBONE_ID, MAYFAIR_ID, MOORGATE_ID } from '@/lib/content/demo-data'
 import { buildSeedDocuments, type SeedDocument } from '@/lib/content/seed-documents'
 import {
   clubOptionSchema,
@@ -127,8 +127,13 @@ describe('GROQ queries over the seeded dataset', () => {
 
   it('CLUB_PAGES_QUERY lists published pages as index cards', async () => {
     const rows = (await run(CLUB_PAGES_QUERY)) as unknown[]
-    const [card] = rows.map((row) => clubPageSummarySchema.parse(row))
-    expect(rows).toHaveLength(1)
+    const cards = rows.map((row) => clubPageSummarySchema.parse(row))
+    // Alphabetical: Marylebone (coming soon) before Mayfair.
+    expect(cards.map((c) => [c.slug, c.status])).toEqual([
+      ['linden-marylebone', 'coming-soon'],
+      ['linden-mayfair', 'open'],
+    ])
+    const card = cards[1]
     expect(card).toMatchObject({
       clubName: 'Linden Mayfair',
       slug: 'linden-mayfair',
@@ -165,6 +170,7 @@ describe('GROQ queries over the seeded dataset', () => {
         }>
       ).map((row) => [row._id, row.hasPage])
     expect(await state(dataset)).toEqual([
+      [MARYLEBONE_ID, true],
       [MAYFAIR_ID, true],
       [MOORGATE_ID, false],
     ])
@@ -178,6 +184,7 @@ describe('GROQ queries over the seeded dataset', () => {
       },
     ]
     expect(await state(withDraft)).toEqual([
+      [MARYLEBONE_ID, true],
       [MAYFAIR_ID, true],
       [MOORGATE_ID, true],
     ])
@@ -263,5 +270,14 @@ describe('GROQ queries over the seeded dataset', () => {
       plan,
     ])) as unknown[]
     expect(plans.map((p) => dayPlanSchema.parse(p).chips)).toEqual([['I need to unwind']])
+  })
+
+  it('the Marylebone page carries a founding offer', async () => {
+    const page = clubPageSchema.parse(
+      await run(CLUB_PAGE_QUERY, { market: 'uk', slug: 'linden-marylebone' }),
+    )
+    expect(page.club.status).toBe('coming-soon')
+    const founding = page.blocks.find((b) => b._type === 'foundingBlock')
+    expect(founding).toMatchObject({ totalPlaces: 150, pricePerMonth: '195', joiningFee: '0' })
   })
 })

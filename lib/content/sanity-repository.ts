@@ -1,6 +1,7 @@
 import 'server-only'
 import { z } from 'zod'
 import { normalizeQuestion } from '@/lib/faq/normalize'
+import { createSanityPlacesStore } from '@/lib/founding/sanity-store'
 import { getReadClient, getWriteClient } from '@/lib/sanity/client'
 import {
   APPROVED_FAQS_QUERY,
@@ -53,6 +54,11 @@ const pageStateSchema = z.object({
 
 export const sanityRepository: ContentRepository = {
   kind: 'sanity',
+
+  // The counter is read and written with the write client, uncached.
+  get foundingPlaces() {
+    return createSanityPlacesStore(getWriteClient())
+  },
 
   async listClubPages() {
     const rows = await published<unknown[]>(CLUB_PAGES_QUERY, {}, [...TYPE_TAGS])

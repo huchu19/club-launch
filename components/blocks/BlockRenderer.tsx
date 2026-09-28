@@ -13,6 +13,7 @@ import { CalculatorBlock } from './CalculatorBlock'
 import { ClubMapBlock } from './ClubMapBlock'
 import { ConciergeBlock } from './ConciergeBlock'
 import { FacilitiesBlock } from './FacilitiesBlock'
+import { FoundingBlock } from './FoundingBlock'
 import { FaqBlock } from './FaqBlock'
 import { HeroBlock } from './HeroBlock'
 import { RatesBlock } from './RatesBlock'
@@ -31,6 +32,7 @@ const anchors: Record<PageBlockType, string> = {
   calculatorBlock: 'cost',
   clubMapBlock: 'map',
   busynessBlock: 'busyness',
+  foundingBlock: 'founding',
 }
 
 /**
@@ -42,9 +44,16 @@ export type BlockRendererProps = {
   /** The club's time of day and weekday, chosen on the server. */
   period?: Period
   today?: Weekday
+  /** Founding places taken when the page was rendered. */
+  foundingTaken?: number
 }
 
-export function BlockRenderer({ page, period, today = 'Monday' }: BlockRendererProps) {
+export function BlockRenderer({
+  page,
+  period,
+  today = 'Monday',
+  foundingTaken = 0,
+}: BlockRendererProps) {
   const { club } = page
   const seen = new Set<PageBlockType>()
   const tourSectionId = page.blocks.some((b) => b._type === 'tourBookingBlock')
@@ -196,6 +205,25 @@ export function BlockRenderer({ page, period, today = 'Monday' }: BlockRendererP
             spaces={club.spaces}
             openingHours={club.openingHours}
             today={today}
+          />
+        )
+      case 'foundingBlock':
+        return (
+          <FoundingBlock
+            key={block._key}
+            id={ctx.id}
+            eyebrow={block.eyebrow}
+            heading={block.heading}
+            offer={block.offer}
+            pricePerMonth={block.pricePerMonth}
+            joiningFee={block.joiningFee}
+            totalPlaces={block.totalPlaces}
+            clubSlug={club.slug}
+            clubName={club.name}
+            placesLeft={Math.max(0, block.totalPlaces - foundingTaken)}
+            locale={club.market.locale}
+            currency={club.market.currency}
+            tourHref={tourSectionId ? `#${tourSectionId}` : undefined}
           />
         )
       default: {

@@ -42,7 +42,10 @@ export const heroBlock = defineType({
               const target = (context.parent as { target?: string } | undefined)?.target
               if (target !== 'url') return true
               if (!url) return 'A URL is required for a custom link.'
-              return /^(https:\/\/|\/)/.test(url) || 'Use https:// or a site path starting with /.'
+              return (
+                /^(https:\/\/|\/|#[a-z0-9-]+$)/.test(url) ||
+                'Use https://, a site path starting with /, or a section on this page like #founding.'
+              )
             }),
         }),
       ],

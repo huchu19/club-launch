@@ -147,6 +147,20 @@ export const faqBlockSchema = z.object({
   allowQuestions: z.preprocess((v) => v ?? false, z.boolean()),
 })
 
+/** Founding member pre-sale for a club that hasn't opened yet. */
+export const foundingBlockSchema = z.object({
+  _type: z.literal('foundingBlock'),
+  ...keyed,
+  eyebrow: opt(z.string()),
+  heading: z.string(),
+  offer: z.string(),
+  /** Numeric string ("195"), like rate plan prices. */
+  pricePerMonth: z.string(),
+  /** Numeric string; "0" means no joining fee. */
+  joiningFee: z.string(),
+  totalPlaces: z.number().int().positive(),
+})
+
 export const busynessBlockSchema = z.object({
   _type: z.literal('busynessBlock'),
   ...keyed,
@@ -194,6 +208,7 @@ export const pageBlockSchema = z.discriminatedUnion('_type', [
   calculatorBlockSchema,
   clubMapBlockSchema,
   busynessBlockSchema,
+  foundingBlockSchema,
 ])
 
 export type HeroBlockData = z.infer<typeof heroBlockSchema>
@@ -207,6 +222,7 @@ export type ConciergeBlockData = z.infer<typeof conciergeBlockSchema>
 export type CalculatorBlockData = z.infer<typeof calculatorBlockSchema>
 export type ClubMapBlockData = z.infer<typeof clubMapBlockSchema>
 export type BusynessBlockData = z.infer<typeof busynessBlockSchema>
+export type FoundingBlockData = z.infer<typeof foundingBlockSchema>
 export type PageBlock = z.infer<typeof pageBlockSchema>
 export type PageBlockType = PageBlock['_type']
 

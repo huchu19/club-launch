@@ -28,10 +28,21 @@ export type LeadDayPlan = {
 
 export type LeadSubmission = { lead: Lead; dayPlan?: LeadDayPlan }
 
+/** Someone taking a founding member place at a club that hasn't opened yet. */
+export const foundingMemberSchema = z.object({
+  clubSlug: z.string().min(1),
+  name: z.string().min(1),
+  email: z.email(),
+  phone: z.string().optional(),
+  consentedAt: z.iso.datetime(),
+})
+export type FoundingMember = z.infer<typeof foundingMemberSchema>
+
 /** Where tour requests go. v1 ships a mock; a real CRM implements the same shape. */
 export interface CrmAdapter {
   readonly name: string
   submitLead(submission: LeadSubmission): Promise<{ id: string }>
+  submitFoundingMember(member: FoundingMember): Promise<{ id: string }>
 }
 
 /**
@@ -47,6 +58,16 @@ export async function submitLeadWithRetry(
   } catch (firstError) {
     console.warn(`[crm:${adapter.name}] submit failed, retrying once:`, errorMessage(firstError))
     return adapter.submitLead(submission)
+  }
+}
+
+/** Any CRM call, retried once on failure; the second error is rethrown. */
+export async function withOneRetry<T>(adapterName: string, call: () => Promise<T>): Promise<T> {
+  try {
+    return await call()
+  } catch (firstError) {
+    console.warn(`[crm:${adapterName}] call failed, retrying once:`, errorMessage(firstError))
+    return call()
   }
 }
 
