@@ -273,6 +273,22 @@ separately in a recessive grey), with values at the bar tips in text colours and
 hidden table holding the full breakdown. HTML bars keep their labels at a readable size on a
 phone, where SVG text would scale down with the drawing.
 
+### Launch readiness
+
+`lib/readiness/checks.ts` holds seven rules that run on raw Sanity documents: no placeholders,
+alt text on every uploaded image, an SEO title of 10–60 characters and a description of
+50–160 (the page's own, or the club's), valid opening hours (real days, 24-hour times, opening
+before closing, no repeats), a numeric joining fee on every plan with a price, a tour booking
+block, and at least five approved FAQs for the club. Each failure says what to do ("Add the
+joining fee to "Founding member"").
+
+The Studio uses the same rules in three places: a document validation rule on club pages
+(an error, which blocks publishing, fetching the club and its approved FAQ count through the
+validation context's client), a badge ("Ready 71%") with what's missing as its tooltip, and a
+checklist on the form, plus a "Launch readiness" tool that lists every club page, drafts first,
+with its score and checklist. Placeholders are reported by the existing placeholder rule, so the
+readiness rule skips them to avoid saying it twice.
+
 ### Question insights
 
 `/admin/insights` sits behind the same basic auth as the drafter and is rendered fresh on each

@@ -2,6 +2,8 @@ import { WarningOutlineIcon } from '@sanity/icons/WarningOutline'
 import { Card, Flex, Stack, Text } from '@sanity/ui'
 import type { ObjectInputProps } from 'sanity'
 import { findPlaceholders } from '../../lib/placeholders'
+import { useReadiness } from '../readiness'
+import { Checklist } from './Checklist'
 
 /**
  * Wraps the club page form with a warning banner while the document still
@@ -10,6 +12,7 @@ import { findPlaceholders } from '../../lib/placeholders'
 export function ClubPageInput(props: ObjectInputProps) {
   const placeholders = findPlaceholders(props.value)
   const unique = [...new Map(placeholders.map((p) => [p.raw, p])).values()]
+  const readiness = useReadiness(props.value as Parameters<typeof useReadiness>[0])
 
   return (
     <Stack gap={4}>
@@ -37,6 +40,16 @@ export function ClubPageInput(props: ObjectInputProps) {
               </Stack>
             </Stack>
           </Flex>
+        </Card>
+      ) : null}
+      {readiness && readiness.score < 100 ? (
+        <Card tone="caution" padding={4} radius={3} border>
+          <Stack gap={3}>
+            <Text size={1} weight="semibold">
+              Launch checklist: {readiness.score}% ready. Publishing unlocks at 100%.
+            </Text>
+            <Checklist checks={readiness.checks} />
+          </Stack>
         </Card>
       ) : null}
       {props.renderDefault(props)}

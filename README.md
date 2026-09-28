@@ -71,6 +71,11 @@ actually ask.
   need an approved answer (flagging ones the assistant couldn't answer), what's new this week,
   and what first-day planners care about (options chosen, caveats, spaces). Each question links
   straight to its answer in Studio.
+- **Launch readiness check.** Every club page gets a readiness score in Studio: a badge on the
+  document, a live checklist on the form, and a "Launch readiness" tool listing all pages. The
+  checks: no `[[placeholders]]`, alt text on every image, SEO title and description within
+  length, valid opening hours, a joining fee with every price, a tour form, and at least five
+  approved FAQs. Publishing is blocked until every check passes.
 - **SEO and performance.** Pages are statically rendered and revalidated by tag. Each page has
   `generateMetadata`, a canonical URL and `HealthClub` JSON-LD, and the site serves a sitemap and
   robots file. Images go through Sanity's CDN.
@@ -142,6 +147,9 @@ that `pnpm seed` writes. CI, e2e and local development without credentials use t
   Only answers with `status == "approved"` render for visitors.
 - **Grounded on one club.** The FAQ model sees only that club's document and its approved answers.
   The drafter sees only the club's facts: no contact details, and nothing about other clubs.
+- **Nothing launches half-finished.** Beyond placeholders, the readiness gate blocks publishing
+  until images have alt text, SEO is complete, hours are valid, every price shows its joining
+  fee, the tour form is present and at least five answers are approved.
 - **Placeholders block publishing.** A document-level validation rule fails while any `[[`
   remains, and a Studio banner lists what's left. After the model responds, any number that isn't
   in the club's facts is wrapped as `[[CHECK: n]]`.
