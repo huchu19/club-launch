@@ -3,6 +3,7 @@ import { buildConciergePrompt, conciergeContext } from '@/lib/concierge/prompt'
 import { checkPlan } from '@/lib/concierge/validate'
 import { ratePlansOf } from '@/lib/content/rate-plans'
 import { demoClubs, demoFaqs, demoPages } from '@/lib/content/demo-data'
+import { offersOf } from '@/lib/content/rate-plans'
 import { buildGroundingContext } from '@/lib/faq/context'
 import { buildFaqPrompt } from '@/lib/faq/prompt'
 import { mockConciergePlan, mockFaqOutcome } from './mock-models'
@@ -10,7 +11,8 @@ import { mockConciergePlan, mockFaqOutcome } from './mock-models'
 const mayfair = demoClubs[0]!
 const context = buildGroundingContext(
   mayfair,
-  demoFaqs.filter((f) => f.status === 'approved'),
+  demoFaqs.filter((f) => f.clubId === mayfair._id && f.status === 'approved'),
+  offersOf(demoPages[0]!.blocks),
 )
 const ask = (q: string) => mockFaqOutcome(buildFaqPrompt(context, q))
 

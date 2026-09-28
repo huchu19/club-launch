@@ -1,6 +1,7 @@
 import { streamText, type LanguageModel } from 'ai'
 import { z } from 'zod'
 import type { ContentRepository } from '@/lib/content/repository'
+import { offersOf } from '@/lib/content/rate-plans'
 import { buildGroundingContext } from './context'
 import { normalizeQuestion } from './normalize'
 import { buildFaqPrompt, FAQ_INSTRUCTIONS } from './prompt'
@@ -68,11 +69,15 @@ export async function answerVisitorQuestion(input: FaqRequest, deps: FaqDeps): P
     return { kind: 'fallback', answer: FALLBACK_ANSWER, reason: 'unavailable' }
   }
 
-  const approvedFaqs = await deps.repository.getApprovedFaqs(club._id)
+  const [approvedFaqs, page] = await Promise.all([
+    deps.repository.getApprovedFaqs(club._id),
+    deps.repository.getClubPage(club.market.code, club.slug),
+  ])
+  const offers = page ? offersOf(page.blocks) : { plans: [] }
   const result = streamText({
     model,
     instructions: FAQ_INSTRUCTIONS,
-    prompt: buildFaqPrompt(buildGroundingContext(club, approvedFaqs), question),
+    prompt: buildFaqPrompt(buildGroundingContext(club, approvedFaqs, offers), question),
     temperature: 0.2,
     // No small maxOutputTokens: on Gemini "thinking" models the thinking tokens count
     // towards it and can leave an empty answer. The prompt asks for 2–4 sentences and

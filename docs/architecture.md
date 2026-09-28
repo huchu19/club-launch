@@ -60,7 +60,7 @@ flowchart LR
 | Document | Purpose | Key fields |
 |---|---|---|
 | `market` | A country or region | `code` (`uk`), `locale` (`en-GB`), `currency` (`GBP`), typical local prices for the cost calculator's comparison (use, label, unit price, unit) |
-| `club` | The facts about one club, and the single source for everything that grounds the AI | name, slug, market, tier, status, address, geo, time zone, opening hours, phone, facilities, spaces (id, name, category, typical uses, optional own hours), sample timetable (day, time, class, space, duration, intensity), an illustrative floor plan (floors of zones tied to spaces, plus decorative areas), facts (label/value pairs such as the joining fee), SEO |
+| `club` | The facts about one club, and the single source for everything that grounds the AI | name, slug, market, tier, status, address, geo, time zone, opening hours, phone, spaces (the one facilities list: id, name, category, description, typical uses, optional own hours), sample timetable (day, time, class, space, duration, intensity), an illustrative floor plan (floors of zones tied to spaces, plus decorative areas), facts (label/value pairs such as the joining fee), SEO |
 | `clubPage` | The page editors build for a club | club, title, ordered `blocks[]`, SEO override |
 | `faqItem` | A question and answer for one club | question, answer, `source` (`editor`/`ai`), `status` (`approved`/`pending`/`rejected`), `askedCount`, `normalizedQuestion` |
 | `dayPlan` | A visitor's planned first day, written by the concierge and read-only in Studio | public id, club (weak reference), day, summary, stops (time, space id, class, activity, reason), suggested membership, caveats, quick options chosen. Never the visitor's message. |
@@ -273,6 +273,23 @@ separately in a recessive grey), with values at the bar tips in text colours and
 hidden table holding the full breakdown. HTML bars keep their labels at a readable size on a
 phone, where SVG text would scale down with the drawing.
 
+### One source per fact
+
+Each fact has one home. The club document holds opening hours, address, phone, map position,
+time zone, spaces (which are also the facilities list, via `facilitiesOf`), the sample
+timetable and the other facts. Membership prices live in the page's rates block and a founding
+price in its founding block: the drafter only writes page drafts, and prices are exactly what it
+must leave as placeholders. Everything else reads from those homes: the facilities block, the
+map and busyness, JSON-LD and the tour details from the club; the calculator, the planner and
+the FAQ grounding take prices from the page (`offersOf`).
+
+`lib/facts/audit.ts` enforces it, and CI runs it over the seed content (`pnpm check:facts`).
+It fails when a block stores a club field; when block copy repeats the club's phone number,
+address or one of its opening times; when a price appears anywhere but the offer blocks' price
+fields; when spa copy repeats a space's description word for word; or when a club fact restates
+a price the page offers. The one-off migration that moved production to this shape is
+`scripts/migrations/single-source.ts` (in two stages, with a dry run).
+
 ### Founding member pre-sale
 
 A `foundingBlock` (offer, price, joining fee, total places) only accepts signups for clubs whose
@@ -379,6 +396,9 @@ demo content, so CI needs no secrets.
 - **Cost comparisons are shown, not claimed.** The typical prices are editable per market,
   labelled on the page as illustrative, and every assumption (each use counted once per visit,
   the joining fee spread over a year) is written out under the chart.
+- **Prices on the page, everything else on the club.** Moving prices onto the club would
+  have meant the drafter editing club records or losing its price placeholders; one home per
+  fact matters more than every fact sharing a document.
 - **Optimistic concurrency for founding places**, not a lock: the content store already offers
   revision checks, contention is low, and a clash costs one retry. A shared lock service would
   be a new paid dependency.
@@ -388,9 +408,8 @@ demo content, so CI needs no secrets.
 - **Two layers of validation for day plans.** A schema can only say a time looks like `07:15`;
   it can't say the reformer class is on at 07:15 on Tuesdays. The domain validator is what makes
   a generated timetable trustworthy, and feeding its messages back gives the retry a real chance.
-- **Spaces alongside facilities.** Spaces carry the ids, hours and typical uses the planner and
-  map need. Facilities stay as the simpler marketing list for now; consolidating the two is part
-  of the single-source-of-facts work on the roadmap.
+- **Spaces are the facilities list.** Spaces carry the ids, hours and typical uses the planner
+  and map need; the facilities list shown on the page is derived from them, so there is one list.
 - **One strict object per block for the drafter**, rather than a free-form array of a union type.
   Gemini's structured output is much more reliable with fixed shapes, and every draft gets all six
   blocks.

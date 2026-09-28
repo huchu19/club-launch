@@ -15,7 +15,7 @@ export function draftToBlocks(draft: DraftOutput): PageBlock[] {
       // Time-of-day wording is left for editors to add.
       periodVariants: [],
     },
-    // No override: the page shows the club's own facilities list.
+    // The block shows the club's own facilities list.
     { _type: 'facilitiesBlock', _key: arrayKey(), ...draft.facilities },
     {
       _type: 'spaRecoveryBlock',

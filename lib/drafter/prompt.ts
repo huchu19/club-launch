@@ -1,4 +1,4 @@
-import type { Club } from '@/lib/content/types'
+import { facilitiesOf, type Club } from '@/lib/content/types'
 import type { Tone } from './schema'
 
 const toneGuide: Record<Tone, string> = {
@@ -25,7 +25,7 @@ export function drafterFacts(club: Club) {
     tier: club.tier,
     address: { locality: club.address.locality },
     openingHours: club.openingHours,
-    facilities: club.facilities,
+    facilities: facilitiesOf(club),
     facts: club.facts,
   }
 }

@@ -3,8 +3,8 @@ import { Heading } from '@/components/ui/Heading'
 import { Section } from '@/components/ui/Section'
 import type { Facility, FacilitiesBlockData } from '@/lib/content/types'
 
-export type FacilitiesBlockProps = Omit<FacilitiesBlockData, '_type' | '_key' | 'facilities'> & {
-  /** Resolved list: the block's override, or the club's own facilities. */
+export type FacilitiesBlockProps = Omit<FacilitiesBlockData, '_type' | '_key'> & {
+  /** The club's own facilities: the block never keeps a copy. */
   facilities: Facility[]
   id?: string
 }

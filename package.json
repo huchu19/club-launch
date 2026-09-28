@@ -21,7 +21,8 @@
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
     "test-storybook": "vitest run --project storybook",
-    "seed": "tsx scripts/seed.ts"
+    "seed": "tsx scripts/seed.ts",
+    "check:facts": "tsx scripts/check-single-source.ts"
   },
   "dependencies": {
     "@ai-sdk/google": "4.0.80",

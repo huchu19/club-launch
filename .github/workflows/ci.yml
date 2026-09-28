@@ -44,6 +44,8 @@ jobs:
       - run: pnpm lint
       - run: pnpm typecheck
       - run: pnpm test
+      # One source per club fact: nothing duplicated between the club and its page.
+      - run: pnpm check:facts
       - run: pnpm build
 
   storybook:

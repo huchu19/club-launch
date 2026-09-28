@@ -22,7 +22,6 @@ const CLUB = `{
   "geo": select(defined(geo.lat) => { "lat": geo.lat, "lng": geo.lng }),
   openingHours[]{ day, opens, closes },
   phone,
-  facilities[]{ name, category, description },
   spaces[]{ id, name, category, description, typicalUses, openingHours[]{ day, opens, closes } },
   schedule[]{ day, time, name, spaceId, durationMin, intensity },
   timeZone,

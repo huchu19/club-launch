@@ -43,6 +43,21 @@ const everyDay = (opens: string, closes: string, weekend?: [string, string]) =>
     },
   )
 
+/** A space with the club's own hours and no listed uses yet. */
+const space = (
+  id: string,
+  name: string,
+  category: Space['category'],
+  description: string,
+): Space => ({
+  id,
+  name,
+  category,
+  description,
+  typicalUses: [],
+  openingHours: [],
+})
+
 /** Spaces at the Mayfair club. The schedule, day plans and club map refer to them by id. */
 const mayfairSpaces: Space[] = [
   {
@@ -243,53 +258,12 @@ export const demoClubs: Club[] = [
       { day: 'Sunday', opens: '07:00', closes: '21:00' },
     ],
     phone: '020 7946 0018',
-    facilities: [
-      {
-        name: 'Strength studio',
-        category: 'gym',
-        description:
-          'Free weights, racks and conditioning kit, with coaches on the floor at peak times.',
-      },
-      {
-        name: '20-metre pool',
-        category: 'pool',
-        description: 'A naturally lit lap pool with lane swimming all day.',
-      },
-      {
-        name: 'Thermal suite',
-        category: 'spa',
-        description: 'Sauna, steam room and a salt inhalation room.',
-      },
-      {
-        name: 'Contrast therapy',
-        category: 'recovery',
-        description: 'Cold plunge pools beside the sauna for hot and cold circuits.',
-      },
-      {
-        name: 'Movement studio',
-        category: 'studio',
-        description: 'Yoga, Pilates and breathwork classes throughout the week.',
-      },
-      {
-        name: "Members' workspace",
-        category: 'cowork',
-        description: 'Quiet desks, phone booths and meeting rooms you can book by the hour.',
-      },
-      {
-        name: 'Garden kitchen',
-        category: 'food',
-        description: 'Seasonal breakfasts, lunches and cold-pressed juices.',
-      },
-    ],
     spaces: mayfairSpaces,
     schedule: mayfairSchedule,
     timeZone: 'Europe/London',
     clubMap: mayfairMap,
     facts: [
-      { label: 'Club membership', value: '£245 per month.' },
-      { label: 'Club and workspace membership', value: '£325 per month.' },
-      { label: 'Off-peak membership', value: '£175 per month, weekdays 10:00–16:00.' },
-      { label: 'Joining fee', value: '£150, paid once when you join.' },
+      // Membership prices live in the page's rates block, not here (one source per fact).
       { label: 'Notice period', value: 'All memberships are monthly with 30 days’ notice.' },
       {
         label: 'Parking',
@@ -343,31 +317,29 @@ export const demoClubs: Club[] = [
       { day: 'Sunday', opens: '08:00', closes: '20:00' },
     ],
     phone: '020 7946 0342',
-    facilities: [
-      {
-        name: 'Strength floor',
-        category: 'gym',
-        description: 'Racks, platforms and free weights across the whole lower floor.',
-      },
-      {
-        name: 'Reformer studio',
-        category: 'studio',
-        description: 'Twelve reformer beds for small-group Pilates.',
-      },
-      { name: 'Infrared sauna', category: 'spa', description: 'Two infrared cabins.' },
-      {
-        name: 'Cold plunge',
-        category: 'recovery',
-        description: 'Two cold plunge pools next to the sauna.',
-      },
-      {
-        name: "Members' workspace",
-        category: 'cowork',
-        description: 'Desks and call booths on the mezzanine.',
-      },
-      { name: 'Juice bar', category: 'food', description: 'Smoothies, coffee and light snacks.' },
+    spaces: [
+      space(
+        'strength-floor',
+        'Strength floor',
+        'gym',
+        'Racks, platforms and free weights across the whole lower floor.',
+      ),
+      space(
+        'reformer-studio',
+        'Reformer studio',
+        'studio',
+        'Twelve reformer beds for small-group Pilates.',
+      ),
+      space('infrared-sauna', 'Infrared sauna', 'spa', 'Two infrared cabins.'),
+      space('cold-plunge', 'Cold plunge', 'recovery', 'Two cold plunge pools next to the sauna.'),
+      space(
+        'members-workspace',
+        "Members' workspace",
+        'cowork',
+        'Desks and call booths on the mezzanine.',
+      ),
+      space('juice-bar', 'Juice bar', 'food', 'Smoothies, coffee and light snacks.'),
     ],
-    spaces: [],
     schedule: [],
     timeZone: 'Europe/London',
     facts: [
@@ -408,22 +380,23 @@ export const demoClubs: Club[] = [
     geo: { lat: 51.5202, lng: -0.1527 },
     openingHours: everyDay('06:30', '22:00', ['08:00', '20:00']),
     phone: '020 7946 0571',
-    facilities: [
-      {
-        name: 'Reformer studio',
-        category: 'studio',
-        description: 'Small-group reformer Pilates in a daylit studio.',
-      },
-      { name: 'Strength room', category: 'gym', description: 'Racks, free weights and rowers.' },
-      { name: 'Sauna', category: 'spa', description: 'A cedar sauna with a garden view.' },
-      { name: 'Cold plunge', category: 'recovery', description: 'Two cold plunge pools.' },
-      {
-        name: "Members' lounge",
-        category: 'cowork',
-        description: 'A quiet lounge with desks and a coffee bar.',
-      },
+    spaces: [
+      space(
+        'reformer-studio',
+        'Reformer studio',
+        'studio',
+        'Small-group reformer Pilates in a daylit studio.',
+      ),
+      space('strength-room', 'Strength room', 'gym', 'Racks, free weights and rowers.'),
+      space('sauna', 'Sauna', 'spa', 'A cedar sauna with a garden view.'),
+      space('cold-plunge', 'Cold plunge', 'recovery', 'Two cold plunge pools.'),
+      space(
+        'members-lounge',
+        "Members' lounge",
+        'cowork',
+        'A quiet lounge with desks and a coffee bar.',
+      ),
     ],
-    spaces: [],
     schedule: [],
     timeZone: 'Europe/London',
     facts: [
@@ -508,7 +481,7 @@ export const demoPages: DemoClubPage[] = [
             period: 'morning',
             eyebrow: 'Mayfair · Good morning',
             subheading:
-              'Start slowly: mobility in the studio, a few calm lengths, breakfast in the garden kitchen. The club opens at 06:00 on weekdays.',
+              'Start slowly: mobility in the studio, a few calm lengths, breakfast in the garden kitchen. The club opens early on weekdays.',
           },
           {
             period: 'midday',
@@ -536,7 +509,6 @@ export const demoPages: DemoClubPage[] = [
         heading: 'Everything under one roof',
         intro:
           'Strength, swimming, recovery and a quiet place to work, designed to be used in the same visit.',
-        facilities: [],
       },
       {
         _type: 'clubMapBlock',
@@ -581,7 +553,7 @@ export const demoPages: DemoClubPage[] = [
           {
             _key: 'contrast',
             name: 'Contrast therapy',
-            description: 'Cold plunge pools beside the sauna for hot and cold circuits.',
+            description: 'Move between heat and cold at your own pace, a few steps from the sauna.',
             image: demoImages.contrastPool,
           },
           {
@@ -628,7 +600,6 @@ export const demoPages: DemoClubPage[] = [
             inclusions: ['Weekdays 10:00–16:00', 'Gym, pool and classes', 'Thermal suite'],
           },
         ],
-        note: 'All memberships are monthly with 30 days’ notice. Members must be 18 or over.',
       },
       {
         _type: 'calculatorBlock',
@@ -693,7 +664,6 @@ export const demoPages: DemoClubPage[] = [
         _key: 'facilities',
         heading: 'What’s inside',
         intro: 'Everything you need for a calm, strong week, under one roof.',
-        facilities: [],
       },
       {
         _type: 'tourBookingBlock',
