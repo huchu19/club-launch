@@ -27,7 +27,6 @@ function clubDocument(club: Club) {
       ...h,
     })),
     phone: club.phone,
-    facilities: club.facilities.map((f) => ({ _key: arrayKey(), _type: 'facility', ...f })),
     spaces: club.spaces.map((space) => ({
       _key: space.id,
       _type: 'space',

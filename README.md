@@ -131,6 +131,43 @@ repository has two implementations: Sanity, and an in-memory store built from th
 that `pnpm seed` writes. CI, e2e and local development without credentials use the in-memory store
 (`CONTENT_MOCK=1`).
 
+## Where each fact lives
+
+Every fact about a club is stored once and read everywhere it's needed. A CI check
+(`pnpm check:facts`) fails the build if a page block stores a club field, repeats the club's
+phone number, address or opening times in its copy, states a price outside the offer blocks,
+or copies a space's description, or if a club fact restates a membership price.
+
+```mermaid
+flowchart LR
+  subgraph clubDoc["Club document"]
+    hours["Opening hours"]
+    contact["Address, phone, map position"]
+    spaces["Spaces and facilities"]
+    timetable["Sample timetable"]
+    facts["Other facts: parking, guests, age"]
+  end
+  subgraph pageDoc["Club page"]
+    rates["Rates block: membership prices"]
+    founding["Founding block: founding price"]
+  end
+  market[("Market: typical local prices")]
+
+  hours & contact --> jsonld["JSON-LD and tour details"]
+  spaces --> facilitiesBlock["Facilities block"]
+  spaces & timetable --> map["Club map and busyness"]
+  hours & contact & spaces & facts --> faq["FAQ grounding"]
+  rates & founding --> faq
+  spaces & timetable & hours --> planner["First-day planner"]
+  rates --> planner
+  rates --> calculator["Cost calculator"]
+  market --> calculator
+  rates & founding --> readiness["Launch readiness"]
+```
+
+Membership prices live on the page rather than the club so the AI drafter, which only ever
+writes page drafts, can leave `[[PRICE: …]]` placeholders for an editor to fill in.
+
 ## Key decisions and trade-offs
 
 - **One block, one type, one component, one story.** Editors can't break the layout, and every

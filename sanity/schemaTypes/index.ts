@@ -3,17 +3,7 @@ import { club } from './club'
 import { clubPage } from './clubPage'
 import { dayPlan } from './dayPlan'
 import { foundingPlaces } from './foundingPlaces'
-import { facility } from './facility'
 import { faqItem } from './faqItem'
 import { market } from './market'
 
-export const schemaTypes = [
-  market,
-  club,
-  clubPage,
-  faqItem,
-  dayPlan,
-  foundingPlaces,
-  facility,
-  ...blockTypes,
-]
+export const schemaTypes = [market, club, clubPage, faqItem, dayPlan, foundingPlaces, ...blockTypes]

@@ -95,7 +95,6 @@ export const facilitiesBlockSchema = z.object({
   ...keyed,
   heading: z.string(),
   intro: opt(z.string()),
-  facilities: opt(z.array(facilitySchema)),
 })
 
 export const spaRecoveryItemSchema = z.object({
@@ -361,7 +360,7 @@ export const clubSchema = z.object({
   geo: opt(z.object({ lat: z.number(), lng: z.number() })),
   openingHours: list(openingHoursSchema),
   phone: opt(z.string()),
-  facilities: list(facilitySchema),
+  /** The club's spaces are also its facilities list: one source (see facilitiesOf). */
   spaces: list(spaceSchema),
   schedule: list(scheduleEntrySchema),
   /** IANA time zone for opening hours and the timetable. */
@@ -400,6 +399,11 @@ export const dayPlanSchema = z.object({
   createdAt: opt(z.string()),
 })
 export type DayPlan = z.infer<typeof dayPlanSchema>
+
+/** The club's facilities, derived from its spaces: nothing stores a second list. */
+export function facilitiesOf(club: Pick<Club, 'spaces'>): Facility[] {
+  return club.spaces.map(({ name, category, description }) => ({ name, category, description }))
+}
 
 export const faqStatuses = ['approved', 'pending', 'rejected'] as const
 export type FaqStatus = (typeof faqStatuses)[number]

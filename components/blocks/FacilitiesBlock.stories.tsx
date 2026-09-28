@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/nextjs-vite'
+import { facilitiesOf } from '@/lib/content/types'
 import { dark, mobile } from '../../.storybook/globals'
 import { FacilitiesBlock } from './FacilitiesBlock'
 import { blockOf, mayfair } from './story-fixtures'
@@ -8,7 +9,7 @@ const block = blockOf('facilitiesBlock')
 const meta = {
   title: 'Blocks/FacilitiesBlock',
   component: FacilitiesBlock,
-  args: { heading: block.heading, intro: block.intro, facilities: mayfair.facilities },
+  args: { heading: block.heading, intro: block.intro, facilities: facilitiesOf(mayfair) },
 } satisfies Meta<typeof FacilitiesBlock>
 
 export default meta

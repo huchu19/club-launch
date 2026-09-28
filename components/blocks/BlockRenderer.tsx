@@ -2,6 +2,7 @@ import { periodHighlights, type Period } from '@/lib/atmosphere/period'
 import { pricedPlansOf } from '@/lib/content/rate-plans'
 import {
   clubPath,
+  facilitiesOf,
   type ClubPageData,
   type PageBlock,
   type PageBlockType,
@@ -105,7 +106,7 @@ export function BlockRenderer({
             id={ctx.id}
             heading={block.heading}
             intro={block.intro}
-            facilities={block.facilities?.length ? block.facilities : club.facilities}
+            facilities={facilitiesOf(club)}
           />
         )
       case 'spaRecoveryBlock':

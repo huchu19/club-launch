@@ -14,14 +14,6 @@ export function arrayKey(): string {
   return crypto.randomUUID().replace(/-/g, '').slice(0, 12)
 }
 
-function keyed<T extends object>(items: T[] | undefined, type: string, withKeys = true) {
-  return (items ?? []).map((item) => ({
-    _type: type,
-    ...(withKeys ? { _key: arrayKey() } : {}),
-    ...item,
-  }))
-}
-
 export function toSanityBlock(block: PageBlock, resolveImage: ImageResolver = noImages) {
   const image = (img?: ImageData) => (img ? resolveImage(img) : undefined)
   switch (block._type) {
@@ -38,10 +30,7 @@ export function toSanityBlock(block: PageBlock, resolveImage: ImageResolver = no
           : undefined,
       }
     case 'facilitiesBlock':
-      return {
-        ...block,
-        facilities: block.facilities?.length ? keyed(block.facilities, 'facility') : undefined,
-      }
+      return { ...block }
     case 'spaRecoveryBlock':
       return {
         ...block,

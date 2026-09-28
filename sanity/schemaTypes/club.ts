@@ -44,7 +44,6 @@ export const club = defineType({
   groups: [
     { name: 'basics', title: 'Basics', default: true },
     { name: 'location', title: 'Location & hours' },
-    { name: 'facilities', title: 'Facilities' },
     { name: 'spaces', title: 'Spaces & timetable' },
     { name: 'map', title: 'Floor plan' },
     { name: 'facts', title: 'Facts (AI grounding)' },
@@ -130,17 +129,12 @@ export const club = defineType({
       initialValue: 'Europe/London',
     }),
     defineField({
-      name: 'facilities',
-      type: 'array',
-      group: 'facilities',
-      of: [defineArrayMember({ type: 'facility' })],
-    }),
-    defineField({
       name: 'spaces',
+      title: 'Spaces and facilities',
       type: 'array',
       group: 'spaces',
       description:
-        'Spaces visitors can use. The timetable, first-day plans and club map refer to each one by its id.',
+        'Everything visitors can use. This is the club’s one facilities list: the page, the FAQ, the planner and the map all read it, and the timetable and map refer to each space by its id.',
       of: [
         defineArrayMember({
           type: 'object',
