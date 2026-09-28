@@ -20,6 +20,14 @@ export const demoMarket: Market = {
   name: 'United Kingdom',
   locale: 'en-GB',
   currency: 'GBP',
+  // Illustrative London prices for the cost calculator's "paying separately" comparison.
+  comparisonItems: [
+    { usage: 'gym', label: 'Gym day pass', unitPrice: 25, unit: 'visit' },
+    { usage: 'classes', label: 'Boutique fitness class', unitPrice: 28, unit: 'class' },
+    { usage: 'spa', label: 'Spa day pass', unitPrice: 55, unit: 'visit' },
+    { usage: 'recovery', label: 'Sauna and cold plunge session', unitPrice: 30, unit: 'session' },
+    { usage: 'cowork', label: 'Co-working day pass', unitPrice: 30, unit: 'day' },
+  ],
 }
 
 export const MAYFAIR_ID = 'club-linden-mayfair'
@@ -484,6 +492,15 @@ export const demoPages: DemoClubPage[] = [
           },
         ],
         note: 'All memberships are monthly with 30 days’ notice. Members must be 18 or over.',
+      },
+      {
+        _type: 'calculatorBlock',
+        _key: 'calculator',
+        eyebrow: 'What it really costs',
+        heading: 'Work out your cost per visit',
+        intro:
+          'Tell us how often you’d come and what you’d use. We’ll show your monthly cost, what each visit works out at, and what the same things would cost paid for one by one.',
+        comparisonLabel: 'Typical London prices, for comparison. Illustrative, not quotes.',
       },
       {
         _type: 'tourBookingBlock',

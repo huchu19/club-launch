@@ -64,12 +64,20 @@ describe('GROQ queries over the seeded dataset', () => {
       market: { code: 'uk', currency: 'GBP' },
     })
     expect(page.club.geo).toEqual({ lat: 51.5098, lng: -0.1492 })
+    expect(page.club.market.comparisonItems.map((c) => c.usage)).toEqual([
+      'gym',
+      'classes',
+      'spa',
+      'recovery',
+      'cowork',
+    ])
     expect(page.blocks.map((b) => b._type)).toEqual([
       'heroBlock',
       'facilitiesBlock',
       'conciergeBlock',
       'spaRecoveryBlock',
       'ratesBlock',
+      'calculatorBlock',
       'tourBookingBlock',
       'faqBlock',
     ])

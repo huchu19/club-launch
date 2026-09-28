@@ -35,6 +35,11 @@ actually ask.
   gets something wrong. Health mentions always carry a caveat to see a professional. "Book a tour
   for this day" attaches the plan to the tour request, so the team can shape the visit; the
   visitor's own words are never stored or shared.
+- **What it really costs.** A calculator turns the club's real prices into a cost per visit:
+  a visits-per-week slider, what you'd use, and which plan. It compares the month with paying
+  separately at typical local prices (edited per market in the CMS and labelled as
+  illustrative), and always shows the joining fee spread over the first year. The arithmetic is
+  a pure, unit-tested module; the chart is plain HTML with a screen-reader table.
 - **Tour booking.** An accessible form that is validated on both client and server, with a
   honeypot, per-IP rate limiting, and a `CrmAdapter` interface that retries once. v1 ships a mock
   adapter that logs a redacted line.
@@ -134,9 +139,9 @@ that `pnpm seed` writes. CI, e2e and local development without credentials use t
 
 | Layer | What | Where |
 |---|---|---|
-| Unit (Vitest) | Schemas, normalisation, grounding context, prompt fencing, redaction, rate limiter, CRM retry, drafter retry, number guard, publish rule, day-plan validator and retry, health caveats, JSON-LD, webhook signatures, API routes | `**/*.test.ts` |
+| Unit (Vitest) | Schemas, normalisation, grounding context, prompt fencing, redaction, rate limiter, CRM retry, drafter retry, number guard, publish rule, day-plan validator and retry, health caveats, cost calculation edge cases, JSON-LD, webhook signatures, API routes | `**/*.test.ts` |
 | Component (Storybook + Vitest browser) | Every component in light, dark and mobile, with edge cases and interaction tests; any axe violation fails the build | `**/*.stories.tsx` |
-| End to end (Playwright + axe) | Keyboard-only tour booking; keyboard-only day planning and booking a tour for that day; health caveats and refusals; FAQ streaming, session-only pending answers, cache hits, refusals and the quota fallback; the drafter; admin auth | `e2e/` |
+| End to end (Playwright + axe) | Keyboard-only tour booking; keyboard-only day planning and booking a tour for that day; the cost calculator with real arrow-key presses; health caveats and refusals; FAQ streaming, session-only pending answers, cache hits, refusals and the quota fallback; the drafter; admin auth | `e2e/` |
 
 All AI calls in CI and e2e use `AI_MOCK=1`: deterministic fixtures that still run through the real
 AI SDK code (`MockLanguageModelV4`). A question or day-planning message containing "quota"

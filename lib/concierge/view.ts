@@ -1,11 +1,6 @@
-import type { Club, DayPlan, PageBlock, RatePlan } from '@/lib/content/types'
+import type { Club, DayPlan, RatePlan } from '@/lib/content/types'
 import type { LeadDayPlan } from '@/lib/crm/adapter'
 import type { DayPlanView } from './protocol'
-
-/** Membership plans on a club page (from its rates block), for grounding and display. */
-export function ratePlansOf(blocks: PageBlock[]): RatePlan[] {
-  return blocks.flatMap((block) => (block._type === 'ratesBlock' ? block.plans : []))
-}
 
 /** Resolves space names and the recommended plan's price from the club's data. */
 export function toDayPlanView(plan: DayPlan, club: Club, plans: RatePlan[]): DayPlanView {

@@ -59,14 +59,15 @@ flowchart LR
 
 | Document | Purpose | Key fields |
 |---|---|---|
-| `market` | A country or region | `code` (`uk`), `locale` (`en-GB`), `currency` (`GBP`) |
+| `market` | A country or region | `code` (`uk`), `locale` (`en-GB`), `currency` (`GBP`), typical local prices for the cost calculator's comparison (use, label, unit price, unit) |
 | `club` | The facts about one club, and the single source for everything that grounds the AI | name, slug, market, tier, status, address, geo, opening hours, phone, facilities, spaces (id, name, category, typical uses, optional own hours), sample timetable (day, time, class, space, duration, intensity), facts (label/value pairs such as the joining fee), SEO |
 | `clubPage` | The page editors build for a club | club, title, ordered `blocks[]`, SEO override |
 | `faqItem` | A question and answer for one club | question, answer, `source` (`editor`/`ai`), `status` (`approved`/`pending`/`rejected`), `askedCount`, `normalizedQuestion` |
 | `dayPlan` | A visitor's planned first day, written by the concierge and read-only in Studio | public id, club (weak reference), day, summary, stops (time, space id, class, activity, reason), suggested membership, caveats, quick options chosen. Never the visitor's message. |
 
 A `clubPage` is an ordered list of blocks: `heroBlock`, `facilitiesBlock`, `conciergeBlock`
-(the first-day planner), `spaRecoveryBlock`, `ratesBlock`, `tourBookingBlock` and `faqBlock`. Each block type has exactly one
+(the first-day planner), `spaRecoveryBlock`, `ratesBlock`, `calculatorBlock` (the cost
+calculator), `tourBookingBlock` and `faqBlock`. Each block type has exactly one
 React component of the same name in `components/blocks`, with its own Storybook stories.
 `BlockRenderer` maps `_type` to component. Editors can reorder and edit blocks but cannot produce a
 layout that has not been built and tested.
@@ -186,6 +187,25 @@ tour form, which shows that the plan is attached and lets the visitor remove it.
 loads the plan by id, checks it belongs to the same club, and passes `{ lead, dayPlan }` to the
 CRM adapter. The model runs before any contact details exist, so it never sees them.
 
+### Cost calculator
+
+The calculator is a client component over a pure module, `lib/calculator/calculate.ts`, so every
+figure on screen comes from unit-tested arithmetic: visits a month (visits a week × 52 / 12),
+cost per visit, the joining fee spread over 12 months, and the cost of paying separately (each
+chosen use counted once per visit at the market's typical price). Zero visits shows no cost per
+visit rather than dividing by zero, and visits are clamped to 0–7.
+
+Plan prices come from the page's rates block; comparison prices come from the club's `market`
+document. Both are part of the tagged club-page read, and the webhook already covers `clubPage`
+and `market`, so a price edited in Studio is live in seconds without a redeploy. The comparison
+prices sit on the market rather than in a document type of their own for that reason: a new type
+would need adding to the webhook's filter.
+
+The chart is two horizontal bars in plain HTML (membership in the brand colour, paying
+separately in a recessive grey), with values at the bar tips in text colours and a visually
+hidden table holding the full breakdown. HTML bars keep their labels at a readable size on a
+phone, where SVG text would scale down with the drawing.
+
 ### Page drafter
 
 `/admin/draft` and `/api/admin/draft` sit behind HTTP basic auth, enforced in `proxy.ts` and
@@ -238,6 +258,9 @@ demo content, so CI needs no secrets.
   suite run against demo data with no credentials.
 - **Plain-text streaming with metadata in headers** for the FAQ, instead of a chat protocol,
   because the client needs to know the answer's status before reading it.
+- **Cost comparisons are shown, not claimed.** The typical prices are editable per market,
+  labelled on the page as illustrative, and every assumption (each use counted once per visit,
+  the joining fee spread over a year) is written out under the chart.
 - **Two layers of validation for day plans.** A schema can only say a time looks like `07:15`;
   it can't say the reformer class is on at 07:15 on Tuesdays. The domain validator is what makes
   a generated timetable trustworthy, and feeding its messages back gives the retry a real chance.

@@ -134,6 +134,16 @@ export const faqBlockSchema = z.object({
   allowQuestions: z.preprocess((v) => v ?? false, z.boolean()),
 })
 
+export const calculatorBlockSchema = z.object({
+  _type: z.literal('calculatorBlock'),
+  ...keyed,
+  eyebrow: opt(z.string()),
+  heading: z.string(),
+  intro: opt(z.string()),
+  /** Shown beside the comparison, e.g. "Typical London prices, for comparison". */
+  comparisonLabel: opt(z.string()),
+})
+
 export const conciergeBlockSchema = z.object({
   _type: z.literal('conciergeBlock'),
   ...keyed,
@@ -152,6 +162,7 @@ export const pageBlockSchema = z.discriminatedUnion('_type', [
   tourBookingBlockSchema,
   faqBlockSchema,
   conciergeBlockSchema,
+  calculatorBlockSchema,
 ])
 
 export type HeroBlockData = z.infer<typeof heroBlockSchema>
@@ -162,14 +173,31 @@ export type RatesBlockData = z.infer<typeof ratesBlockSchema>
 export type TourBookingBlockData = z.infer<typeof tourBookingBlockSchema>
 export type FaqBlockData = z.infer<typeof faqBlockSchema>
 export type ConciergeBlockData = z.infer<typeof conciergeBlockSchema>
+export type CalculatorBlockData = z.infer<typeof calculatorBlockSchema>
 export type PageBlock = z.infer<typeof pageBlockSchema>
 export type PageBlockType = PageBlock['_type']
+
+/** The things a member might otherwise pay for one by one. */
+export const usages = ['gym', 'classes', 'spa', 'recovery', 'cowork'] as const
+export type Usage = (typeof usages)[number]
+
+/** A typical local price for paying separately, used by the cost calculator. */
+export const comparisonItemSchema = z.object({
+  usage: z.enum(usages),
+  label: z.string(),
+  unitPrice: z.number().nonnegative(),
+  /** What one unit is, e.g. "visit", "class", "day". */
+  unit: z.string(),
+  note: opt(z.string()),
+})
+export type ComparisonItem = z.infer<typeof comparisonItemSchema>
 
 export const marketSchema = z.object({
   code: z.string(),
   name: z.string(),
   locale: z.string(),
   currency: z.string(),
+  comparisonItems: list(comparisonItemSchema),
 })
 export type Market = z.infer<typeof marketSchema>
 

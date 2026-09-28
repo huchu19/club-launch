@@ -3,7 +3,7 @@ import { getConciergeModel } from '@/lib/ai/model'
 import { getContentRepository } from '@/lib/content'
 import { conciergeRequestSchema, type ConciergeResponse } from '@/lib/concierge/protocol'
 import { planFirstDay } from '@/lib/concierge/service'
-import { ratePlansOf } from '@/lib/concierge/view'
+import { ratePlansOf } from '@/lib/content/rate-plans'
 import { createRateLimiter } from '@/lib/rate-limit'
 import { clientIp, PayloadTooLargeError, readJson } from '@/lib/request'
 

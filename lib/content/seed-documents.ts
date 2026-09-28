@@ -52,7 +52,16 @@ export type SeedDocument = { _id: string; _type: string } & Record<string, unkno
 
 export function buildSeedDocuments(resolveImage: ImageResolver): SeedDocument[] {
   return [
-    { _id: MARKET_ID, _type: 'market', ...demoMarket },
+    {
+      _id: MARKET_ID,
+      _type: 'market',
+      ...demoMarket,
+      comparisonItems: demoMarket.comparisonItems.map((item) => ({
+        _key: item.usage,
+        _type: 'comparisonItem',
+        ...item,
+      })),
+    },
     ...demoClubs.map(clubDocument),
     ...demoPages.map((page) => ({
       _id: page._id,

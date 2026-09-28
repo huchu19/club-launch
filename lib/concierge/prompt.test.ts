@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { demoClubs, demoPages } from '@/lib/content/demo-data'
 import { buildConciergePrompt, conciergeContext, mentionsHealth, withHealthCaveat } from './prompt'
 import { HEALTH_CAVEAT } from './protocol'
-import { ratePlansOf } from './view'
+import { ratePlansOf } from '@/lib/content/rate-plans'
 
 const mayfair = demoClubs[0]!
 const context = conciergeContext(mayfair, ratePlansOf(demoPages[0]!.blocks))
