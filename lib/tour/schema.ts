@@ -74,6 +74,11 @@ export function createTourRequestSchema(today: string = todayIso()) {
     consent: z.literal(true, {
       error: 'Tick the box to agree that we can contact you about your tour',
     }),
+    /** Public id of a first-day plan the visitor chose to share with the team. */
+    dayPlanId: z
+      .string()
+      .regex(/^[a-z0-9]{8,32}$/)
+      .optional(),
     /** Honeypot. Real visitors never see or fill it. */
     website: z.string().max(200).optional(),
   })
@@ -81,7 +86,7 @@ export function createTourRequestSchema(today: string = todayIso()) {
 
 export type TourRequest = z.infer<ReturnType<typeof createTourRequestSchema>>
 
-export type TourField = Exclude<keyof TourRequest, 'clubSlug' | 'website'>
+export type TourField = Exclude<keyof TourRequest, 'clubSlug' | 'website' | 'dayPlanId'>
 
 export type TourFieldErrors = Partial<Record<TourField, string>>
 

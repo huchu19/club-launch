@@ -15,7 +15,11 @@ export default defineConfig({
   basePath: '/studio',
   projectId: projectId || 'unconfigured',
   dataset,
-  schema: { types: schemaTypes },
+  schema: {
+    types: schemaTypes,
+    // Day plans are written by the site, never created by hand.
+    templates: (templates) => templates.filter((t) => t.schemaType !== 'dayPlan'),
+  },
   plugins: [
     structureTool({ structure }),
     presentationTool({

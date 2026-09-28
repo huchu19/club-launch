@@ -20,6 +20,8 @@ const CLUB = `{
   openingHours[]{ day, opens, closes },
   phone,
   facilities[]{ name, category, description },
+  spaces[]{ id, name, category, description, typicalUses, openingHours[]{ day, opens, closes } },
+  schedule[]{ day, time, name, spaceId, durationMin, intensity },
   facts[]{ label, value },
   seo
 }`
@@ -79,5 +81,19 @@ export const CLUBS_WITH_PAGE_STATE_QUERY = defineQuery(`
     name,
     "slug": slug.current,
     "hasPage": count(*[_type == "clubPage" && club._ref == ^._id]) > 0
+  }
+`)
+
+export const DAY_PLAN_QUERY = defineQuery(`
+  *[_type == "dayPlan" && publicId == $publicId][0]{
+    publicId,
+    "clubId": club._ref,
+    day,
+    summary,
+    stops[]{ time, spaceId, className, activity, reason },
+    recommendedPlanName,
+    caveats,
+    chips,
+    createdAt
   }
 `)

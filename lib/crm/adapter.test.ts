@@ -29,21 +29,21 @@ afterEach(() => vi.restoreAllMocks())
 describe('submitLeadWithRetry', () => {
   it('returns the id on the first success without retrying', async () => {
     const adapter = flakyAdapter(0)
-    await expect(submitLeadWithRetry(adapter, lead)).resolves.toEqual({ id: 'LEAD-1' })
+    await expect(submitLeadWithRetry(adapter, { lead })).resolves.toEqual({ id: 'LEAD-1' })
     expect(adapter.calls).toBe(1)
   })
 
   it('retries exactly once after a failure', async () => {
     vi.spyOn(console, 'warn').mockImplementation(() => {})
     const adapter = flakyAdapter(1)
-    await expect(submitLeadWithRetry(adapter, lead)).resolves.toEqual({ id: 'LEAD-1' })
+    await expect(submitLeadWithRetry(adapter, { lead })).resolves.toEqual({ id: 'LEAD-1' })
     expect(adapter.calls).toBe(2)
   })
 
   it('gives up after the retry fails and rethrows', async () => {
     vi.spyOn(console, 'warn').mockImplementation(() => {})
     const adapter = flakyAdapter(5)
-    await expect(submitLeadWithRetry(adapter, lead)).rejects.toThrow('failure 2')
+    await expect(submitLeadWithRetry(adapter, { lead })).rejects.toThrow('failure 2')
     expect(adapter.calls).toBe(2)
   })
 })
@@ -51,7 +51,7 @@ describe('submitLeadWithRetry', () => {
 describe('MockCrmAdapter', () => {
   it('returns a reference and logs one line without personal data', async () => {
     const info = vi.spyOn(console, 'info').mockImplementation(() => {})
-    const { id } = await new MockCrmAdapter().submitLead(lead)
+    const { id } = await new MockCrmAdapter().submitLead({ lead })
     expect(id).toMatch(/^TOUR-[A-Z2-9]{6}$/)
     expect(info).toHaveBeenCalledOnce()
     const line = String(info.mock.calls[0]?.[0])
@@ -59,7 +59,25 @@ describe('MockCrmAdapter', () => {
     for (const secret of ['Sam', 'sam@example.com', '7946']) expect(line).not.toContain(secret)
   })
 
+  it('notes an attached day plan without any personal data', async () => {
+    const info = vi.spyOn(console, 'info').mockImplementation(() => {})
+    await new MockCrmAdapter().submitLead({
+      lead,
+      dayPlan: {
+        id: 'abc123',
+        day: 'Wednesday',
+        summary: 'A balanced Wednesday.',
+        stops: [{ time: '08:00', space: 'Movement studio', activity: 'Vinyasa yoga' }],
+      },
+    })
+    const line = String(info.mock.calls[0]?.[0])
+    expect(line).toContain('plan=abc123 (Wednesday, 1 stop)')
+    for (const secret of ['Sam', 'sam@example.com', '7946']) expect(line).not.toContain(secret)
+  })
+
   it('validates the lead', async () => {
-    await expect(new MockCrmAdapter().submitLead({ ...lead, email: 'nope' })).rejects.toThrow()
+    await expect(
+      new MockCrmAdapter().submitLead({ lead: { ...lead, email: 'nope' } }),
+    ).rejects.toThrow()
   })
 })

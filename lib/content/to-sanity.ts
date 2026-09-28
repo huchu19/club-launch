@@ -45,6 +45,7 @@ export function toSanityBlock(block: PageBlock, resolveImage: ImageResolver = no
       return { ...block, plans: block.plans.map((plan) => ({ ...plan, _type: 'ratePlan' })) }
     case 'tourBookingBlock':
     case 'faqBlock':
+    case 'conciergeBlock':
       return { ...block }
   }
 }

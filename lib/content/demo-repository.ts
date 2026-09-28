@@ -4,14 +4,17 @@ import type { ContentRepository, DraftClubPage } from './repository'
 import {
   clubPageSchema,
   clubPageSummarySchema,
+  dayPlanSchema,
   type Club,
   type ClubPageData,
   type ClubPageSummary,
+  type DayPlan,
 } from './types'
 
 type DemoStore = {
   faqs: DemoFaq[]
   drafts: Array<DraftClubPage & { _id: string }>
+  dayPlans: DayPlan[]
 }
 
 // Shared across route bundles in one server process (Next.js may load this
@@ -19,7 +22,11 @@ type DemoStore = {
 const globalStore = globalThis as typeof globalThis & { __clubLaunchDemoStore?: DemoStore }
 
 function store(): DemoStore {
-  globalStore.__clubLaunchDemoStore ??= { faqs: structuredClone(demoFaqs), drafts: [] }
+  globalStore.__clubLaunchDemoStore ??= {
+    faqs: structuredClone(demoFaqs),
+    drafts: [],
+    dayPlans: [],
+  }
   return globalStore.__clubLaunchDemoStore
 }
 
@@ -132,5 +139,15 @@ export const demoRepository: ContentRepository = {
     const id = `drafts.clubPage-demo-${crypto.randomUUID()}`
     store().drafts.push({ ...input, _id: id })
     return { id }
+  },
+
+  async createDayPlan(plan) {
+    const saved = dayPlanSchema.parse({ ...plan, createdAt: new Date().toISOString() })
+    store().dayPlans.push(saved)
+    return { id: saved.publicId }
+  },
+
+  async getDayPlan(publicId) {
+    return store().dayPlans.find((p) => p.publicId === publicId) ?? null
   },
 }

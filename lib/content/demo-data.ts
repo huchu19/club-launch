@@ -1,4 +1,14 @@
-import type { Club, FaqStatus, Market, PageBlock, Seo } from './types'
+import type {
+  Club,
+  FaqStatus,
+  Intensity,
+  Market,
+  PageBlock,
+  ScheduleEntry,
+  Seo,
+  Space,
+  Weekday,
+} from './types'
 
 // Demo content: one fully built relaunch page (Mayfair-style) and one club
 // with facts only (Moorgate-style), whose page is created live with the AI
@@ -14,6 +24,150 @@ export const demoMarket: Market = {
 
 export const MAYFAIR_ID = 'club-linden-mayfair'
 export const MOORGATE_ID = 'club-linden-moorgate'
+
+const everyDay = (opens: string, closes: string, weekend?: [string, string]) =>
+  (['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] as const).map(
+    (day) => {
+      const [o, c] = weekend && (day === 'Saturday' || day === 'Sunday') ? weekend : [opens, closes]
+      return { day, opens: o, closes: c }
+    },
+  )
+
+/** Spaces at the Mayfair club. The schedule, day plans and club map refer to them by id. */
+const mayfairSpaces: Space[] = [
+  {
+    id: 'strength-studio',
+    name: 'Strength studio',
+    category: 'gym',
+    description:
+      'Free weights, racks and conditioning kit, with coaches on the floor at peak times.',
+    typicalUses: ['Strength training', 'Coached conditioning', 'Open gym sessions'],
+    openingHours: [],
+  },
+  {
+    id: 'pool',
+    name: '20-metre pool',
+    category: 'pool',
+    description: 'A naturally lit lap pool with lane swimming all day.',
+    typicalUses: ['Lane swimming', 'Swim technique', 'Easy recovery swims'],
+    openingHours: [],
+  },
+  {
+    id: 'thermal-suite',
+    name: 'Thermal suite',
+    category: 'spa',
+    description: 'Sauna, steam room and a salt inhalation room, looking onto the garden.',
+    typicalUses: ['Sauna and steam', 'Unwinding after training', 'Quiet time'],
+    openingHours: [],
+  },
+  {
+    id: 'contrast-therapy',
+    name: 'Contrast therapy',
+    category: 'recovery',
+    description: 'Cold plunge pools beside the sauna for hot and cold circuits.',
+    typicalUses: ['Hot and cold circuits', 'Recovery after training'],
+    openingHours: [],
+  },
+  {
+    id: 'movement-studio',
+    name: 'Movement studio',
+    category: 'studio',
+    description: 'Yoga, Pilates, mobility and breathwork classes throughout the week.',
+    typicalUses: ['Yoga', 'Pilates', 'Mobility', 'Breathwork'],
+    openingHours: [],
+  },
+  {
+    id: 'workspace',
+    name: "Members' workspace",
+    category: 'cowork',
+    description: 'Quiet desks, phone booths and meeting rooms you can book by the hour.',
+    typicalUses: ['Focused work', 'Calls in a phone booth', 'Meetings'],
+    openingHours: everyDay('07:00', '20:00', ['08:00', '18:00']),
+  },
+  {
+    id: 'garden-kitchen',
+    name: 'Garden kitchen',
+    category: 'food',
+    description: 'Seasonal breakfasts, lunches and cold-pressed juices.',
+    typicalUses: ['Breakfast', 'Lunch', 'A juice after training'],
+    openingHours: everyDay('07:00', '20:00', ['08:00', '19:00']),
+  },
+]
+
+type ClassSlot = [
+  time: string,
+  name: string,
+  spaceId: string,
+  minutes: number,
+  intensity: Intensity,
+]
+
+const classes = (days: Weekday[], slots: ClassSlot[]): ScheduleEntry[] =>
+  days.flatMap((day) =>
+    slots.map(([time, name, spaceId, durationMin, intensity]) => ({
+      day,
+      time,
+      name,
+      spaceId,
+      durationMin,
+      intensity,
+    })),
+  )
+
+/** A sample weekly timetable, within the club's opening hours. */
+const mayfairSchedule: ScheduleEntry[] = [
+  ...classes(
+    ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
+    [
+      ['06:30', 'Strength foundations', 'strength-studio', 45, 'medium'],
+      ['07:15', 'Morning mobility', 'movement-studio', 30, 'low'],
+      ['17:30', 'Guided contrast circuit', 'contrast-therapy', 30, 'low'],
+    ],
+  ),
+  ...classes(
+    ['Monday', 'Wednesday', 'Friday'],
+    [
+      ['08:00', 'Vinyasa yoga', 'movement-studio', 60, 'medium'],
+      ['12:30', 'Express conditioning', 'strength-studio', 30, 'high'],
+    ],
+  ),
+  ...classes(
+    ['Tuesday', 'Thursday'],
+    [
+      ['08:00', 'Mat Pilates', 'movement-studio', 45, 'medium'],
+      ['12:30', 'Swim technique', 'pool', 30, 'medium'],
+      ['19:00', 'Breathwork', 'movement-studio', 30, 'low'],
+    ],
+  ),
+  ...classes(
+    ['Monday', 'Tuesday', 'Wednesday', 'Thursday'],
+    [
+      ['18:15', 'Strength and conditioning', 'strength-studio', 45, 'high'],
+      ['20:00', 'Yin yoga', 'movement-studio', 60, 'low'],
+    ],
+  ),
+  ...classes(['Monday', 'Wednesday'], [['19:00', 'Slow stretch', 'movement-studio', 45, 'low']]),
+  ...classes(['Friday'], [['18:15', 'Breathwork', 'movement-studio', 30, 'low']]),
+  ...classes(
+    ['Saturday'],
+    [
+      ['08:00', 'Weekend strength', 'strength-studio', 60, 'high'],
+      ['09:30', 'Vinyasa yoga', 'movement-studio', 60, 'medium'],
+      ['11:00', 'Swim technique', 'pool', 45, 'medium'],
+      ['16:00', 'Guided contrast circuit', 'contrast-therapy', 30, 'low'],
+      ['17:00', 'Slow stretch', 'movement-studio', 45, 'low'],
+    ],
+  ),
+  ...classes(
+    ['Sunday'],
+    [
+      ['09:00', 'Mat Pilates', 'movement-studio', 45, 'medium'],
+      ['10:30', 'Breathwork', 'movement-studio', 30, 'low'],
+      ['16:00', 'Guided contrast circuit', 'contrast-therapy', 30, 'low'],
+      ['17:00', 'Yin yoga', 'movement-studio', 60, 'low'],
+    ],
+  ),
+]
 
 export const demoClubs: Club[] = [
   {
@@ -78,6 +232,8 @@ export const demoClubs: Club[] = [
         description: 'Seasonal breakfasts, lunches and cold-pressed juices.',
       },
     ],
+    spaces: mayfairSpaces,
+    schedule: mayfairSchedule,
     facts: [
       { label: 'Club membership', value: '£245 per month.' },
       { label: 'Club and workspace membership', value: '£325 per month.' },
@@ -160,6 +316,8 @@ export const demoClubs: Club[] = [
       },
       { name: 'Juice bar', category: 'food', description: 'Smoothies, coffee and light snacks.' },
     ],
+    spaces: [],
+    schedule: [],
     facts: [
       {
         label: 'Conversion',
@@ -250,6 +408,15 @@ export const demoPages: DemoClubPage[] = [
         intro:
           'Strength, swimming, recovery and a quiet place to work, designed to be used in the same visit.',
         facilities: [],
+      },
+      {
+        _type: 'conciergeBlock',
+        _key: 'concierge',
+        eyebrow: 'Plan your first day',
+        heading: 'A day here, shaped around your week',
+        intro:
+          'Tell us a little about your week and we’ll suggest a first day at the club, built from the real timetable. Suggestions are generated automatically, so the team can help you adjust them on your tour.',
+        chips: ['I work from home', 'Training for an event', 'I need to unwind'],
       },
       {
         _type: 'spaRecoveryBlock',

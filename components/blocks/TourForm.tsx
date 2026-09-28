@@ -1,9 +1,15 @@
 'use client'
 
-import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, useSyncExternalStore, type FormEvent } from 'react'
 import { Button } from '@/components/ui/Button'
 import { CheckboxField, SelectField, TextField } from '@/components/ui/FormField'
 import { InlineMessage } from '@/components/ui/InlineMessage'
+import {
+  clearSharedDayPlan,
+  getServerSharedDayPlan,
+  getSharedDayPlan,
+  subscribeSharedDayPlan,
+} from '@/lib/concierge/shared-plan-store'
 import {
   createTourRequestSchema,
   addDaysIso,
@@ -101,7 +107,14 @@ export function TourForm({ clubSlug, clubName, submit = postTourRequest }: TourF
   const [confirmation, setConfirmation] = useState<{
     reference: string
     request: TourRequest
+    planDay?: string
   } | null>(null)
+  // A first-day plan the visitor chose to share from the concierge block.
+  const sharedPlan = useSyncExternalStore(
+    subscribeSharedDayPlan,
+    () => getSharedDayPlan(clubSlug),
+    getServerSharedDayPlan,
+  )
   const [focusRequest, setFocusRequest] = useState<{ target: Focus; n: number } | null>(null)
   const requestFocus = (target: Focus) =>
     setFocusRequest((previous) => ({ target, n: (previous?.n ?? 0) + 1 }))
@@ -133,6 +146,7 @@ export function TourForm({ clubSlug, clubName, submit = postTourRequest }: TourF
       preferredDate: values.preferredDate,
       timeSlot: values.timeSlot,
       consent: values.consent,
+      dayPlanId: sharedPlan?.id,
       website: values.website || undefined,
     })
 
@@ -150,7 +164,12 @@ export function TourForm({ clubSlug, clubName, submit = postTourRequest }: TourF
     setSubmitting(false)
 
     if (result.ok) {
-      setConfirmation({ reference: result.reference, request: parsed.data })
+      setConfirmation({
+        reference: result.reference,
+        request: parsed.data,
+        planDay: sharedPlan?.day,
+      })
+      clearSharedDayPlan()
       requestFocus('success')
     } else if (result.kind === 'invalid') {
       setErrors(result.fieldErrors)
@@ -168,7 +187,7 @@ export function TourForm({ clubSlug, clubName, submit = postTourRequest }: TourF
   }
 
   if (confirmation) {
-    const { request, reference } = confirmation
+    const { request, reference, planDay } = confirmation
     const firstName = request.name.split(/\s+/)[0]
     return (
       <div ref={successRef} tabIndex={-1} className="space-y-6 focus:outline-none">
@@ -178,6 +197,9 @@ export function TourForm({ clubSlug, clubName, submit = postTourRequest }: TourF
             {/^[aeiou]/.test(request.timeSlot) ? 'an' : 'a'} {request.timeSlot} visit on{' '}
             {formatDate(request.preferredDate)}.
           </p>
+          {planDay ? (
+            <p className="mt-2">Your {planDay} plan is attached, so your tour can follow it.</p>
+          ) : null}
           <p className="mt-2 text-sm">
             Reference: <span className="font-mono text-ink">{reference}</span>
           </p>
@@ -203,6 +225,19 @@ export function TourForm({ clubSlug, clubName, submit = postTourRequest }: TourF
       <p id="tour-form-intro" className="text-ink-muted">
         All fields are required unless marked optional.
       </p>
+
+      {sharedPlan ? (
+        <div className="rounded-sm border-l-4 border-brand bg-brand-wash px-5 py-4">
+          <p className="font-medium text-ink">Your {sharedPlan.day} plan is attached</p>
+          <p className="mt-1 text-ink-muted">
+            The team will see the stops you planned and shape your tour around them. Your message
+            isn’t shared.
+          </p>
+          <Button variant="quiet" className="mt-2" onClick={clearSharedDayPlan}>
+            Remove the plan
+          </Button>
+        </div>
+      ) : null}
 
       {errorEntries.length > 0 ? (
         <div

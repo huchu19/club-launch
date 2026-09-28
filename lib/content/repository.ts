@@ -3,6 +3,7 @@ import type {
   ClubOption,
   ClubPageData,
   ClubPageSummary,
+  DayPlan,
   FaqStatus,
   PageBlock,
   Seo,
@@ -62,4 +63,8 @@ export interface ContentRepository {
   listClubsWithoutPage(): Promise<ClubOption[]>
   /** Creates an unpublished draft. Never publishes. */
   createDraftClubPage(input: DraftClubPage): Promise<{ id: string }>
+
+  /** Stores a first-day plan under its public id. */
+  createDayPlan(plan: DayPlan): Promise<{ id: string }>
+  getDayPlan(publicId: string): Promise<DayPlan | null>
 }

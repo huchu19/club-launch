@@ -1,4 +1,5 @@
 // Story-only fixtures built from the same demo data the app and seed use.
+import type { DayPlanView } from '@/lib/concierge/protocol'
 import { demoClubs, demoFaqs, demoPages } from '@/lib/content/demo-data'
 import type { Club, PageBlock, PublicFaq } from '@/lib/content/types'
 import { FAQ_HEADERS, type FaqAnswerStatus } from '@/lib/faq/protocol'
@@ -59,4 +60,53 @@ export function streamingAnswer(
       [FAQ_HEADERS.source]: status === 'fallback' ? 'fallback' : 'model',
     },
   })
+}
+
+/** A first-day plan as /api/concierge returns it. */
+export const samplePlan: DayPlanView = {
+  id: 'storyplan0000001',
+  clubName: mayfair.name,
+  day: 'Wednesday',
+  summary: 'A balanced Wednesday at Linden Mayfair, planned around your working day.',
+  stops: [
+    {
+      time: '08:00',
+      spaceId: 'movement-studio',
+      spaceName: 'Movement studio',
+      className: 'Vinyasa yoga',
+      activity: 'Vinyasa yoga',
+      reason: 'You start the day moving, in a class that suits how you like to train.',
+    },
+    {
+      time: '10:00',
+      spaceId: 'workspace',
+      spaceName: "Members' workspace",
+      activity: 'Settle in for focused work',
+      reason: 'You get a quiet desk for the morning, with booths for calls.',
+    },
+    {
+      time: '13:00',
+      spaceId: 'garden-kitchen',
+      spaceName: 'Garden kitchen',
+      activity: 'Lunch in the garden kitchen',
+      reason: 'You break the day with a seasonal lunch in the garden.',
+    },
+    {
+      time: '17:30',
+      spaceId: 'contrast-therapy',
+      spaceName: 'Contrast therapy',
+      className: 'Guided contrast circuit',
+      activity: 'Guided contrast circuit',
+      reason: 'You wind down with a guided hot and cold circuit as the day slows.',
+    },
+    {
+      time: '18:30',
+      spaceId: 'thermal-suite',
+      spaceName: 'Thermal suite',
+      activity: 'Time in the thermal suite',
+      reason: 'You end the day warm and unhurried, looking out onto the garden.',
+    },
+  ],
+  recommendedPlan: { name: 'Club and workspace', pricePerMonth: '325', joiningFee: '150' },
+  caveats: [],
 }

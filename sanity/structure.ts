@@ -48,5 +48,6 @@ export const structure: StructureResolver = (S) =>
             ]),
         ),
       S.divider(),
+      S.documentTypeListItem('dayPlan').title('Day plans'),
       S.documentTypeListItem('market').title('Markets'),
     ])

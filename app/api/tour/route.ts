@@ -1,5 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
+import { toLeadDayPlan } from '@/lib/concierge/view'
 import { getContentRepository } from '@/lib/content'
+import type { Club } from '@/lib/content/types'
 import { getCrmAdapter, submitLeadWithRetry } from '@/lib/crm'
 import { errorMessage } from '@/lib/crm/adapter'
 import { tourReference } from '@/lib/crm/mock'
@@ -12,6 +14,21 @@ const tourRateLimiter = createRateLimiter({ limit: 5, windowMs: 10 * 60 * 1000 }
 
 const json = (body: unknown, status = 200, headers?: HeadersInit) =>
   NextResponse.json(body, { status, headers })
+
+/**
+ * The visitor's first-day plan, if they booked from one. A missing, unreadable
+ * or other club's plan is ignored rather than failing the booking.
+ */
+async function sharedDayPlan(id: string | undefined, club: Club) {
+  if (!id) return undefined
+  const plan = await getContentRepository()
+    .getDayPlan(id)
+    .catch((error: unknown) => {
+      console.warn('[tour] could not load the day plan:', errorMessage(error))
+      return null
+    })
+  return plan && plan.clubId === club._id ? toLeadDayPlan(plan, club) : undefined
+}
 
 export async function POST(request: NextRequest) {
   const limit = tourRateLimiter.check(`tour:${clientIp(request)}`)
@@ -50,13 +67,16 @@ export async function POST(request: NextRequest) {
 
   try {
     const { id } = await submitLeadWithRetry(getCrmAdapter(), {
-      clubSlug: club.slug,
-      name: request_.name,
-      email: request_.email,
-      phone: request_.phone || undefined,
-      preferredDate: request_.preferredDate,
-      timeSlot: request_.timeSlot,
-      consentedAt: new Date().toISOString(),
+      lead: {
+        clubSlug: club.slug,
+        name: request_.name,
+        email: request_.email,
+        phone: request_.phone || undefined,
+        preferredDate: request_.preferredDate,
+        timeSlot: request_.timeSlot,
+        consentedAt: new Date().toISOString(),
+      },
+      dayPlan: await sharedDayPlan(request_.dayPlanId, club),
     })
     return json({ reference: id })
   } catch (error) {

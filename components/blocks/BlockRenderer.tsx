@@ -1,5 +1,6 @@
 import type { ClubPageData, PageBlock, PageBlockType } from '@/lib/content/types'
 import { groupOpeningHours } from '@/lib/format'
+import { ConciergeBlock } from './ConciergeBlock'
 import { FacilitiesBlock } from './FacilitiesBlock'
 import { FaqBlock } from './FaqBlock'
 import { HeroBlock } from './HeroBlock'
@@ -15,6 +16,7 @@ const anchors: Record<PageBlockType, string> = {
   ratesBlock: 'rates',
   tourBookingBlock: 'tour',
   faqBlock: 'faq',
+  conciergeBlock: 'plan-your-day',
 }
 
 /**
@@ -24,6 +26,9 @@ const anchors: Record<PageBlockType, string> = {
 export function BlockRenderer({ page }: { page: ClubPageData }) {
   const { club } = page
   const seen = new Set<PageBlockType>()
+  const tourSectionId = page.blocks.some((b) => b._type === 'tourBookingBlock')
+    ? anchors.tourBookingBlock
+    : undefined
 
   return (
     <>
@@ -95,6 +100,22 @@ export function BlockRenderer({ page }: { page: ClubPageData }) {
             allowQuestions={block.allowQuestions}
             faqs={ctx.page.faqs}
             clubSlug={club.slug}
+          />
+        )
+      case 'conciergeBlock':
+        return (
+          <ConciergeBlock
+            key={block._key}
+            id={ctx.id}
+            eyebrow={block.eyebrow}
+            heading={block.heading}
+            intro={block.intro}
+            chips={block.chips}
+            clubSlug={club.slug}
+            clubName={club.name}
+            locale={club.market.locale}
+            currency={club.market.currency}
+            tourSectionId={tourSectionId}
           />
         )
       default: {

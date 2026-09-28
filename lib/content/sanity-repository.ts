@@ -9,11 +9,19 @@ import {
   CLUB_PAGE_QUERY,
   CLUB_PAGES_QUERY,
   CLUBS_WITH_PAGE_STATE_QUERY,
+  DAY_PLAN_QUERY,
   FAQ_CANDIDATES_QUERY,
 } from '@/lib/sanity/queries'
 import type { ContentRepository } from './repository'
 import { clubPageTags, TYPE_TAGS } from './tags'
-import { clubPageSchema, clubPageSummarySchema, clubSchema, faqStatuses } from './types'
+import { arrayKey } from './to-sanity'
+import {
+  clubPageSchema,
+  clubPageSummarySchema,
+  clubSchema,
+  dayPlanSchema,
+  faqStatuses,
+} from './types'
 
 /** Cached until a webhook expires one of the tags. */
 function published<T>(query: string, params: Record<string, unknown>, tags: string[]) {
@@ -130,5 +138,27 @@ export const sanityRepository: ContentRepository = {
       blocks: input.blocks,
     })
     return { id: doc._id }
+  },
+
+  async createDayPlan(plan) {
+    await getWriteClient().create({
+      _id: `dayPlan-${plan.publicId}`,
+      _type: 'dayPlan',
+      publicId: plan.publicId,
+      club: { _type: 'reference', _ref: plan.clubId, _weak: true },
+      day: plan.day,
+      summary: plan.summary,
+      stops: plan.stops.map((stop) => ({ _key: arrayKey(), _type: 'dayPlanStop', ...stop })),
+      recommendedPlanName: plan.recommendedPlanName,
+      caveats: plan.caveats,
+      chips: plan.chips,
+      createdAt: new Date().toISOString(),
+    })
+    return { id: plan.publicId }
+  },
+
+  async getDayPlan(publicId) {
+    const raw = await fresh<unknown>(DAY_PLAN_QUERY, { publicId })
+    return raw ? dayPlanSchema.parse(raw) : null
   },
 }
