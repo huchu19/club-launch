@@ -1,5 +1,5 @@
 import { normalizeQuestion } from '@/lib/faq/normalize'
-import { demoClubs, demoFaqs, demoPages, type DemoFaq } from './demo-data'
+import { demoClubs, demoFaqs, demoPages, MAYFAIR_ID, type DemoFaq } from './demo-data'
 import type { ContentRepository, DraftClubPage } from './repository'
 import {
   clubPageSchema,
@@ -9,6 +9,7 @@ import {
   type ClubPageData,
   type ClubPageSummary,
   type DayPlan,
+  type QuestionRecord,
 } from './types'
 
 type DemoStore = {
@@ -17,15 +18,96 @@ type DemoStore = {
   dayPlans: DayPlan[]
 }
 
+const SEEDED_AT = '2026-09-20T09:00:00Z'
+const daysAgo = (days: number) => new Date(Date.now() - days * 86_400_000).toISOString()
+
+/**
+ * A little visitor history for the insights page in demo mode: questions the
+ * FAQ assistant has fielded (some near-duplicates, one it couldn't answer) and
+ * a few first-day plans. Demo-only; never written to Sanity by the seed.
+ */
+function demoHistory(): { faqs: DemoFaq[]; dayPlans: DayPlan[] } {
+  const ai = (id: string, question: string, answer: string, askedCount: number, days: number) => ({
+    _id: `faq-demo-${id}`,
+    clubId: MAYFAIR_ID,
+    question,
+    answer,
+    status: 'pending' as const,
+    source: 'ai' as const,
+    askedCount,
+    createdAt: daysAgo(days),
+  })
+  const refusal =
+    'I’m sorry, I can’t answer that from the information I have about Linden Mayfair. The team will be happy to help: book a tour or contact the club directly.'
+  const plan = (
+    id: string,
+    day: DayPlan['day'],
+    chips: string[],
+    caveats: string[],
+    days: number,
+  ) => ({
+    publicId: `demoplan${id}00000000`.slice(0, 16),
+    clubId: MAYFAIR_ID,
+    day,
+    summary: `A ${day} at Linden Mayfair.`,
+    stops: [
+      {
+        time: '08:00',
+        spaceId: 'movement-studio',
+        activity: 'A morning class',
+        reason: 'You start well.',
+      },
+      { time: '13:00', spaceId: 'garden-kitchen', activity: 'Lunch', reason: 'You pause.' },
+      { time: '18:30', spaceId: 'thermal-suite', activity: 'Thermal suite', reason: 'You unwind.' },
+    ],
+    recommendedPlanName: 'Club',
+    caveats,
+    chips,
+    createdAt: daysAgo(days),
+  })
+  const health =
+    'If you have an injury or a health condition, check with a GP or physiotherapist before trying anything new.'
+  return {
+    faqs: [
+      ai('steam', 'Do you have a steam room?', 'Yes, the thermal suite has a steam room.', 6, 2),
+      ai(
+        'steam-2',
+        'Is there a steam room in the spa?',
+        'Yes, the thermal suite has a steam room.',
+        2,
+        1,
+      ),
+      ai('pool-temp', 'How warm is the pool?', refusal, 3, 3),
+      ai('lockers', 'Are there lockers for my things?', refusal, 2, 12),
+      ai(
+        'guest-weekend',
+        'Can I bring guests at the weekend?',
+        'Members may bring up to two guests per visit after 10:00.',
+        1,
+        5,
+      ),
+    ],
+    dayPlans: [
+      plan('a', 'Wednesday', ['I work from home'], [], 1),
+      plan('b', 'Saturday', ['Training for an event'], [], 2),
+      plan('c', 'Thursday', ['I need to unwind', 'I work from home'], [], 4),
+      plan('d', 'Tuesday', ['I need to unwind'], [health], 6),
+    ],
+  }
+}
+
 // Shared across route bundles in one server process (Next.js may load this
 // module more than once). Resets on restart, which is what demo mode wants.
 const globalStore = globalThis as typeof globalThis & { __clubLaunchDemoStore?: DemoStore }
 
 function store(): DemoStore {
-  globalStore.__clubLaunchDemoStore ??= {
-    faqs: structuredClone(demoFaqs),
-    drafts: [],
-    dayPlans: [],
+  if (!globalStore.__clubLaunchDemoStore) {
+    const history = demoHistory()
+    globalStore.__clubLaunchDemoStore = {
+      faqs: [...structuredClone(demoFaqs), ...history.faqs],
+      drafts: [],
+      dayPlans: history.dayPlans,
+    }
   }
   return globalStore.__clubLaunchDemoStore
 }
@@ -122,6 +204,7 @@ export const demoRepository: ContentRepository = {
       status: 'pending',
       source: 'ai',
       askedCount: 1,
+      createdAt: new Date().toISOString(),
     })
     return { id }
   },
@@ -149,5 +232,24 @@ export const demoRepository: ContentRepository = {
 
   async getDayPlan(publicId) {
     return store().dayPlans.find((p) => p.publicId === publicId) ?? null
+  },
+
+  async listQuestions(clubId): Promise<QuestionRecord[]> {
+    return store()
+      .faqs.filter((f) => f.clubId === clubId)
+      .sort((a, b) => b.askedCount - a.askedCount)
+      .map(({ _id, question, answer, status, source, askedCount, createdAt }) => ({
+        _id,
+        question,
+        answer,
+        status,
+        source,
+        askedCount,
+        createdAt: createdAt ?? SEEDED_AT,
+      }))
+  },
+
+  async listDayPlans(clubId) {
+    return store().dayPlans.filter((p) => p.clubId === clubId)
   },
 }

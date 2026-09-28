@@ -8,6 +8,7 @@ import {
   clubPageSummarySchema,
   clubSchema,
   dayPlanSchema,
+  questionRecordSchema,
 } from '@/lib/content/types'
 import {
   APPROVED_FAQS_QUERY,
@@ -15,6 +16,8 @@ import {
   CLUB_BY_SLUG_QUERY,
   CLUB_PAGE_QUERY,
   CLUB_PAGES_QUERY,
+  CLUB_DAY_PLANS_QUERY,
+  CLUB_QUESTIONS_QUERY,
   CLUBS_WITH_PAGE_STATE_QUERY,
   DAY_PLAN_QUERY,
   FAQ_CANDIDATES_QUERY,
@@ -228,5 +231,37 @@ describe('GROQ queries over the seeded dataset', () => {
       chips: ['I work from home'],
     })
     expect(plan.stops[0]?.className).toBe('Vinyasa yoga')
+  })
+
+  it('insight queries return every FAQ item and the club’s day plans', async () => {
+    // _createdAt is set by Sanity; groq-js reads whatever the document has.
+    const withDates = dataset.map((doc) =>
+      doc._type === 'faqItem' ? { ...doc, _createdAt: '2026-09-20T09:00:00Z' } : doc,
+    )
+    const questions = (await run(
+      CLUB_QUESTIONS_QUERY,
+      { clubId: MAYFAIR_ID },
+      withDates,
+    )) as unknown[]
+    expect(questions).toHaveLength(5)
+    expect(questions.every((q) => questionRecordSchema.safeParse(q).success)).toBe(true)
+
+    const plan = {
+      _id: 'dayPlan-planforinsight01',
+      _type: 'dayPlan',
+      publicId: 'planforinsight01',
+      club: { _type: 'reference', _ref: MAYFAIR_ID, _weak: true },
+      day: 'Friday',
+      summary: 'A day.',
+      stops: [],
+      caveats: [],
+      chips: ['I need to unwind'],
+      createdAt: '2026-09-27T09:00:00Z',
+    }
+    const plans = (await run(CLUB_DAY_PLANS_QUERY, { clubId: MAYFAIR_ID }, [
+      ...dataset,
+      plan,
+    ])) as unknown[]
+    expect(plans.map((p) => dayPlanSchema.parse(p).chips)).toEqual([['I need to unwind']])
   })
 })

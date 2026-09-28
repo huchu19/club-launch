@@ -3,6 +3,7 @@ import type { ContentRepository } from '@/lib/content/repository'
 import { toSanityBlocks } from '@/lib/content/to-sanity'
 import type { Club } from '@/lib/content/types'
 import { findPlaceholders, type Placeholder } from '@/lib/placeholders'
+import { studioEditPath } from '@/lib/studio'
 import { flagUnverifiedNumbers } from './guard'
 import { buildDrafterPrompt, DRAFTER_INSTRUCTIONS } from './prompt'
 import { draftOutputSchema, type DraftOutput, type DraftRequest, type Tone } from './schema'
@@ -53,11 +54,7 @@ export async function generateDraft(
   )
 }
 
-/** Studio deep link that opens the draft of a document. */
-export function studioEditPath(documentId: string, type = 'clubPage'): string {
-  const publishedId = documentId.replace(/^drafts\./, '')
-  return `/studio/intent/edit/id=${publishedId};type=${type}/`
-}
+export { studioEditPath } from '@/lib/studio'
 
 const blockLabels: Record<string, string> = {
   heroBlock: 'Hero',

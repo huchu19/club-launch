@@ -273,6 +273,21 @@ separately in a recessive grey), with values at the bar tips in text colours and
 hidden table holding the full breakdown. HTML bars keep their labels at a readable size on a
 phone, where SVG text would scale down with the drawing.
 
+### Question insights
+
+`/admin/insights` sits behind the same basic auth as the drafter and is rendered fresh on each
+request. The repository lists every FAQ item for the club (all statuses, with when it was first
+asked) and its recent day plans; `lib/insights/insights.ts` shapes them, and the page only
+renders.
+
+Near-duplicate questions are grouped by word overlap (`lib/insights/group.ts`): questions are
+normalised, filler words dropped and plurals and "-ing" endings trimmed, and two questions
+match when at least 60% of the shorter one's words appear in the other. Questions are taken
+most-asked first, so each group is titled by its most common wording. Answers the assistant
+gave when it couldn't help are recognised by their shape ("can't answer", "don't have that
+information"), since the model words them freely. Planner themes count only the quick options
+people tapped and the kinds of caveat added: the visitor's own words are never stored.
+
 ### Page drafter
 
 `/admin/draft` and `/api/admin/draft` sit behind HTTP basic auth, enforced in `proxy.ts` and
@@ -331,6 +346,9 @@ demo content, so CI needs no secrets.
 - **Cost comparisons are shown, not claimed.** The typical prices are editable per market,
   labelled on the page as illustrative, and every assumption (each use counted once per visit,
   the joining fee spread over a year) is written out under the chart.
+- **Grouping without embeddings.** Word overlap with light stemming is explainable to a club
+  manager, free, and good enough for a few hundred questions; embeddings are the next step if
+  paraphrases with no shared words become common.
 - **Two layers of validation for day plans.** A schema can only say a time looks like `07:15`;
   it can't say the reformer class is on at 07:15 on Tuesdays. The domain validator is what makes
   a generated timetable trustworthy, and feeding its messages back gives the retry a real chance.

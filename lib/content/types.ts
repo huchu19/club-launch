@@ -388,6 +388,18 @@ export type DayPlan = z.infer<typeof dayPlanSchema>
 export const faqStatuses = ['approved', 'pending', 'rejected'] as const
 export type FaqStatus = (typeof faqStatuses)[number]
 
+/** Every FAQ item for a club, for the insights page (never shown to visitors). */
+export const questionRecordSchema = z.object({
+  _id: z.string(),
+  question: z.string(),
+  answer: z.preprocess((v) => v ?? '', z.string()),
+  status: z.enum(faqStatuses),
+  source: z.enum(['editor', 'ai']),
+  askedCount: z.preprocess((v) => v ?? 0, z.number()),
+  createdAt: z.string(),
+})
+export type QuestionRecord = z.infer<typeof questionRecordSchema>
+
 export const publicFaqSchema = z.object({
   _id: z.string(),
   question: z.string(),

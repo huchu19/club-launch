@@ -8,6 +8,8 @@ import {
   CLUB_BY_SLUG_QUERY,
   CLUB_PAGE_QUERY,
   CLUB_PAGES_QUERY,
+  CLUB_DAY_PLANS_QUERY,
+  CLUB_QUESTIONS_QUERY,
   CLUBS_WITH_PAGE_STATE_QUERY,
   DAY_PLAN_QUERY,
   FAQ_CANDIDATES_QUERY,
@@ -21,6 +23,7 @@ import {
   clubSchema,
   dayPlanSchema,
   faqStatuses,
+  questionRecordSchema,
 } from './types'
 
 /** Cached until a webhook expires one of the tags. */
@@ -160,5 +163,15 @@ export const sanityRepository: ContentRepository = {
   async getDayPlan(publicId) {
     const raw = await fresh<unknown>(DAY_PLAN_QUERY, { publicId })
     return raw ? dayPlanSchema.parse(raw) : null
+  },
+
+  async listQuestions(clubId) {
+    const rows = await fresh<unknown[]>(CLUB_QUESTIONS_QUERY, { clubId })
+    return z.array(questionRecordSchema).parse(rows ?? [])
+  },
+
+  async listDayPlans(clubId) {
+    const rows = await fresh<unknown[]>(CLUB_DAY_PLANS_QUERY, { clubId })
+    return z.array(dayPlanSchema).parse(rows ?? [])
   },
 }
