@@ -14,6 +14,7 @@ Each item says what it is and what it's worth to a club operator.
 | AI page drafter with publish-blocking placeholders | A new club's first page draft takes minutes, and invented prices or dates can't reach the public. |
 | SEO: metadata, canonical URLs, `HealthClub` JSON-LD, sitemap | Each club page is ready to rank for local searches from launch day. |
 | "Plan my first day" concierge: a personalised timeline validated against real spaces and the timetable, attached to tour requests | Turns browsing into intent, and tour guides see what each lead cares about before they arrive. |
+| "What it really costs" calculator: cost per visit, the joining fee spread over a year, and a comparison with paying separately | Answers the price objection on the page, including the joining fee, rather than on the phone. |
 | CI with unit, component, accessibility and end-to-end tests | Changes ship without regressions, and accessibility is checked on every change. |
 
 ## Next
@@ -22,7 +23,6 @@ Each item says what it is and what it's worth to a club operator.
 
 | Milestone | Feature | Value to the operator |
 |---|---|---|
-| M9 | "What it really costs" calculator with cost per visit against paying separately | Answers the price objection on the page, including the joining fee, rather than on the phone. |
 | M10 | Explorable club map, an illustrated floor plan with what's on in each space | Shows off the spaces that justify the price, and works on touch, mouse, keyboard and screen readers. |
 | M11 | Shareable "my club day" card with a generated social image | Word-of-mouth referrals that carry the club's branding and link straight to a tour. |
 | M12 | Time-of-day atmosphere: hero copy and emphasis that follow the club's local time | The page leads with classes in the morning and the spa in the evening, matching what visitors want then. |

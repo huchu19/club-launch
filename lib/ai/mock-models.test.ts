@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { buildConciergePrompt, conciergeContext } from '@/lib/concierge/prompt'
 import { checkPlan } from '@/lib/concierge/validate'
-import { ratePlansOf } from '@/lib/concierge/view'
+import { ratePlansOf } from '@/lib/content/rate-plans'
 import { demoClubs, demoFaqs, demoPages } from '@/lib/content/demo-data'
 import { buildGroundingContext } from '@/lib/faq/context'
 import { buildFaqPrompt } from '@/lib/faq/prompt'

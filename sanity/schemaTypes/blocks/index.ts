@@ -1,3 +1,4 @@
+import { calculatorBlock } from './calculatorBlock'
 import { conciergeBlock } from './conciergeBlock'
 import { facilitiesBlock } from './facilitiesBlock'
 import { faqBlock } from './faqBlock'
@@ -15,6 +16,7 @@ export const blockTypes = [
   tourBookingBlock,
   faqBlock,
   conciergeBlock,
+  calculatorBlock,
 ]
 
 export const blockTypeNames = blockTypes.map((t) => t.name)

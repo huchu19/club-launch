@@ -8,7 +8,7 @@ import type { ContentRepository } from '@/lib/content/repository'
 import { HEALTH_CAVEAT, REFUSAL_MESSAGE } from './protocol'
 import type { PlanOutput } from './schema'
 import { planFirstDay } from './service'
-import { ratePlansOf } from './view'
+import { ratePlansOf } from '@/lib/content/rate-plans'
 
 const mayfair = demoClubs[0]!
 const plans = ratePlansOf(demoPages[0]!.blocks)

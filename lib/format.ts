@@ -9,8 +9,11 @@ export function isNumeric(value: string): boolean {
  * returned unchanged so it stays visible.
  */
 export function formatPrice(value: string, locale = 'en-GB', currency = 'GBP'): string {
-  if (!isNumeric(value)) return value
-  const amount = Number(value)
+  return isNumeric(value) ? formatMoney(Number(value), locale, currency) : value
+}
+
+/** "£245" for whole amounts, "£18.85" otherwise. */
+export function formatMoney(amount: number, locale = 'en-GB', currency = 'GBP'): string {
   return new Intl.NumberFormat(locale, {
     style: 'currency',
     currency,

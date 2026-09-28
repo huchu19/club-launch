@@ -12,7 +12,10 @@ const CLUB = `{
   _id,
   name,
   "slug": slug.current,
-  "market": market->{ code, name, locale, currency },
+  "market": market->{
+    code, name, locale, currency,
+    comparisonItems[]{ usage, label, unitPrice, unit, note }
+  },
   tier,
   status,
   address,
