@@ -28,3 +28,13 @@ test('the cost calculator works with the keyboard alone', async ({ page }) => {
   await page.keyboard.press('Home')
   await expectNoA11yViolations(page)
 })
+
+test('the club page never scrolls sideways on a phone', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.goto('/uk/clubs/linden-mayfair')
+  const { scrollWidth, clientWidth } = await page.evaluate(() => ({
+    scrollWidth: document.documentElement.scrollWidth,
+    clientWidth: document.documentElement.clientWidth,
+  }))
+  expect(scrollWidth).toBeLessThanOrEqual(clientWidth)
+})

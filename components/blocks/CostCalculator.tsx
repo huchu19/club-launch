@@ -279,36 +279,39 @@ function ComparisonChart({
           </div>
         ))}
       </div>
-      <table className="sr-only">
-        <caption>Monthly cost, compared with paying separately</caption>
-        <thead>
-          <tr>
-            <th scope="col">Option</th>
-            <th scope="col">Cost a month</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <th scope="row">
-              {clubName} membership
-              {hasJoiningFee ? ', including the joining fee spread over a year' : ''}
-            </th>
-            <td>{money(membership)}</td>
-          </tr>
-          {breakdown.map((item) => (
-            <tr key={item.usage}>
-              <th scope="row">
-                {item.label} at {money(item.unitPrice)} per {item.unit}
-              </th>
-              <td>{money(item.monthly)}</td>
+      {/* A table ignores the 1px width of sr-only, so the wrapper hides it instead. */}
+      <div className="sr-only">
+        <table>
+          <caption>Monthly cost, compared with paying separately</caption>
+          <thead>
+            <tr>
+              <th scope="col">Option</th>
+              <th scope="col">Cost a month</th>
             </tr>
-          ))}
-          <tr>
-            <th scope="row">Paying separately in total</th>
-            <td>{money(separately)}</td>
-          </tr>
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row">
+                {clubName} membership
+                {hasJoiningFee ? ', including the joining fee spread over a year' : ''}
+              </th>
+              <td>{money(membership)}</td>
+            </tr>
+            {breakdown.map((item) => (
+              <tr key={item.usage}>
+                <th scope="row">
+                  {item.label} at {money(item.unitPrice)} per {item.unit}
+                </th>
+                <td>{money(item.monthly)}</td>
+              </tr>
+            ))}
+            <tr>
+              <th scope="row">Paying separately in total</th>
+              <td>{money(separately)}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </figure>
   )
 }
