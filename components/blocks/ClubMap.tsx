@@ -4,6 +4,7 @@ import { useEffect, useId, useRef, useState, type KeyboardEvent } from 'react'
 import { facilityCategoryLabels, facilityIconPaths } from '@/components/media/FacilityIcon'
 import { Button } from '@/components/ui/Button'
 import { cn } from '@/lib/cn'
+import { busynessForDay, describeLevel } from '@/lib/busyness/generator'
 import { prefillConcierge } from '@/lib/concierge/prefill'
 import type {
   ClubMap as ClubMapData,
@@ -17,6 +18,8 @@ import { localMoment } from '@/lib/time/local-time'
 
 export type ClubMapProps = {
   clubName: string
+  /** Seeds the illustrative busyness figures. */
+  clubSlug: string
   map: ClubMapData
   spaces: Space[]
   schedule: ScheduleEntry[]
@@ -100,6 +103,7 @@ function Shape({ geometry, className }: { geometry: Geometry; className?: string
 
 export function ClubMap({
   clubName,
+  clubSlug,
   map,
   spaces,
   schedule,
@@ -130,6 +134,13 @@ export function ClubMap({
   const spaceOf = (spaceId: string) => spaces.find((s) => s.id === spaceId)
   const statusOf = (space: Space) =>
     moment ? spaceStatus(space, { openingHours, schedule }, moment) : null
+  /** Typical busyness for this hour (illustrative), or null when closed or unknown. */
+  const busyNowOf = (space: Space) =>
+    moment
+      ? (busynessForDay(clubSlug, space, openingHours, moment.day).find(
+          (h) => h.hour === moment.hour,
+        )?.level ?? null)
+      : null
   const selected = floor.zones.find((z) => z.spaceId === selectedId)
   const selectedSpace = selected ? spaceOf(selected.spaceId) : undefined
   // Roving tabindex: the selected zone, else the first, is the one Tab stop.
@@ -347,6 +358,7 @@ export function ClubMap({
                 space={selectedSpace}
                 floorName={floor.name}
                 status={statusOf(selectedSpace)}
+                busyNow={busyNowOf(selectedSpace)}
                 headingLevel={3}
                 onAddToDay={plannerSectionId ? () => addToDay(selectedSpace) : undefined}
               />
@@ -373,6 +385,7 @@ export function ClubMap({
                         space={space}
                         floorName={f.name}
                         status={statusOf(space)}
+                        busyNow={busyNowOf(space)}
                         headingLevel={4}
                         onAddToDay={plannerSectionId ? () => addToDay(space) : undefined}
                       />
@@ -404,11 +417,19 @@ type SpaceDetailsProps = {
   space: Space
   floorName: string
   status: SpaceStatus | null
+  busyNow: number | null
   headingLevel: 3 | 4
   onAddToDay?: () => void
 }
 
-function SpaceDetails({ space, floorName, status, headingLevel, onAddToDay }: SpaceDetailsProps) {
+function SpaceDetails({
+  space,
+  floorName,
+  status,
+  busyNow,
+  headingLevel,
+  onAddToDay,
+}: SpaceDetailsProps) {
   const Heading = `h${headingLevel}` as const
   return (
     <div className="space-y-4">
@@ -435,6 +456,15 @@ function SpaceDetails({ space, floorName, status, headingLevel, onAddToDay }: Sp
             <dt className="w-16 shrink-0 text-ink-muted">On now</dt>
             <dd>
               {status.now.name}, until {status.now.endsAt}
+            </dd>
+          </div>
+        ) : null}
+        {status?.open && busyNow !== null ? (
+          <div className="flex gap-2">
+            <dt className="w-16 shrink-0 text-ink-muted">Busy?</dt>
+            <dd>
+              Usually {describeLevel(busyNow) === 'moderate' ? 'steady' : describeLevel(busyNow)} at
+              this time (illustrative)
             </dd>
           </div>
         ) : null}

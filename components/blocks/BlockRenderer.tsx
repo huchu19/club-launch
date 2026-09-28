@@ -5,8 +5,10 @@ import {
   type ClubPageData,
   type PageBlock,
   type PageBlockType,
+  type Weekday,
 } from '@/lib/content/types'
 import { groupOpeningHours } from '@/lib/format'
+import { BusynessBlock } from './BusynessBlock'
 import { CalculatorBlock } from './CalculatorBlock'
 import { ClubMapBlock } from './ClubMapBlock'
 import { ConciergeBlock } from './ConciergeBlock'
@@ -28,13 +30,21 @@ const anchors: Record<PageBlockType, string> = {
   conciergeBlock: 'plan-your-day',
   calculatorBlock: 'cost',
   clubMapBlock: 'map',
+  busynessBlock: 'busyness',
 }
 
 /**
  * Renders a club page's blocks in order. Each Sanity block type maps
  * one-to-one to a component of the same name (docs/SPEC.md §3).
  */
-export function BlockRenderer({ page, period }: { page: ClubPageData; period?: Period }) {
+export type BlockRendererProps = {
+  page: ClubPageData
+  /** The club's time of day and weekday, chosen on the server. */
+  period?: Period
+  today?: Weekday
+}
+
+export function BlockRenderer({ page, period, today = 'Monday' }: BlockRendererProps) {
   const { club } = page
   const seen = new Set<PageBlockType>()
   const tourSectionId = page.blocks.some((b) => b._type === 'tourBookingBlock')
@@ -172,6 +182,20 @@ export function BlockRenderer({ page, period }: { page: ClubPageData; period?: P
             intro={block.intro}
             club={club}
             plannerSectionId={plannerSectionId}
+          />
+        )
+      case 'busynessBlock':
+        return (
+          <BusynessBlock
+            key={block._key}
+            id={ctx.id}
+            eyebrow={block.eyebrow}
+            heading={block.heading}
+            intro={block.intro}
+            clubSlug={club.slug}
+            spaces={club.spaces}
+            openingHours={club.openingHours}
+            today={today}
           />
         )
       default: {

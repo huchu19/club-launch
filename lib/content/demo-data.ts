@@ -495,6 +495,14 @@ export const demoPages: DemoClubPage[] = [
           'Explore the club floor by floor. Choose a space to see what it’s for and what’s on there now. The plan is illustrative.',
       },
       {
+        _type: 'busynessBlock',
+        _key: 'busyness',
+        eyebrow: 'How busy is it',
+        heading: 'Come when it suits you',
+        intro:
+          'Typical busyness for each space through the day. The quietest hour for each is picked out, so you can plan around the crowds.',
+      },
+      {
         _type: 'conciergeBlock',
         _key: 'concierge',
         eyebrow: 'Plan your first day',

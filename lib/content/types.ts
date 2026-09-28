@@ -147,6 +147,14 @@ export const faqBlockSchema = z.object({
   allowQuestions: z.preprocess((v) => v ?? false, z.boolean()),
 })
 
+export const busynessBlockSchema = z.object({
+  _type: z.literal('busynessBlock'),
+  ...keyed,
+  eyebrow: opt(z.string()),
+  heading: z.string(),
+  intro: opt(z.string()),
+})
+
 export const clubMapBlockSchema = z.object({
   _type: z.literal('clubMapBlock'),
   ...keyed,
@@ -185,6 +193,7 @@ export const pageBlockSchema = z.discriminatedUnion('_type', [
   conciergeBlockSchema,
   calculatorBlockSchema,
   clubMapBlockSchema,
+  busynessBlockSchema,
 ])
 
 export type HeroBlockData = z.infer<typeof heroBlockSchema>
@@ -197,6 +206,7 @@ export type FaqBlockData = z.infer<typeof faqBlockSchema>
 export type ConciergeBlockData = z.infer<typeof conciergeBlockSchema>
 export type CalculatorBlockData = z.infer<typeof calculatorBlockSchema>
 export type ClubMapBlockData = z.infer<typeof clubMapBlockSchema>
+export type BusynessBlockData = z.infer<typeof busynessBlockSchema>
 export type PageBlock = z.infer<typeof pageBlockSchema>
 export type PageBlockType = PageBlock['_type']
 

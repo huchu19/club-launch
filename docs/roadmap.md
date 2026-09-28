@@ -14,6 +14,7 @@ Each item says what it is and what it's worth to a club operator.
 | AI page drafter with publish-blocking placeholders | A new club's first page draft takes minutes, and invented prices or dates can't reach the public. |
 | SEO: metadata, canonical URLs, `HealthClub` JSON-LD, sitemap | Each club page is ready to rank for local searches from launch day. |
 | "Plan my first day" concierge: a personalised timeline validated against real spaces and the timetable, attached to tour requests | Turns browsing into intent, and tour guides see what each lead cares about before they arrive. |
+| "How busy is it" forecast by space and hour (illustrative data) | Reduces "it'll be packed" hesitation and steers visits to quieter hours. |
 | Time-of-day atmosphere: hero wording, tint and a suggested section that follow the club's clock | The page leads with classes in the morning and the spa in the evening, matching what visitors want then. |
 | Explorable club map: an illustrated floor plan with what's on in each space now and next, by mouse, touch or keyboard | Shows off the spaces that justify the price, and works for every visitor. |
 | Shareable "my club day" page and social card | Word-of-mouth referrals that carry the club's branding and link straight to a tour. |
@@ -26,7 +27,6 @@ Each item says what it is and what it's worth to a club operator.
 
 | Milestone | Feature | Value to the operator |
 |---|---|---|
-| M13 | "How busy is it" forecast by space and hour (illustrative data) | Reduces "it'll be packed" hesitation and steers visits to quieter hours. |
 
 ### For club teams
 

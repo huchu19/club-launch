@@ -237,6 +237,7 @@ type PromptSpace = {
   id: string
   category: string
   openingHours?: Array<{ day: string; opens: string; closes: string }>
+  quietTimes?: { weekdays: string[]; weekends: string[] }
 }
 type PromptContext = {
   club?: string
@@ -261,6 +262,7 @@ export function mockConciergePlan(promptText: string): PlanOutput {
   const retrying = promptText.includes('<problems_with_previous_plan>')
 
   const works = /\b(work|desk|laptop|calls?|meetings?)\b/.test(lower)
+  const avoidCrowds = /\b(crowd\w*|busy|packed|queue\w*|quiet\w*)\b/.test(lower)
   const event = /\b(event|marathon|race|triathlon|half)\b/.test(lower)
   const health = mentionsHealth(text)
   const gentle = health || /\b(unwind|relax|stress\w*|slow|calm|tired)\b/.test(lower)
@@ -311,17 +313,28 @@ export function mockConciergePlan(promptText: string): PlanOutput {
 
   const lateMorning = first ? laterBy(first.time, first.durationMin + 30) : '10:00'
   const midMorning = lateMorning > '10:00' ? lateMorning : '10:00'
+  // Avoiding crowds: use the space's quietest typical hour instead, when it's free.
+  const quietTime = (category: string, fallback: string) => {
+    const space = byCategory(category)
+    const weekend = day === 'Saturday' || day === 'Sunday'
+    const times = (weekend ? space?.quietTimes?.weekends : space?.quietTimes?.weekdays) ?? []
+    const free = times.find(
+      (t) =>
+        space && open(space.id, t) && !today.some((e) => e.time === t) && t > (first?.time ?? ''),
+    )
+    return avoidCrowds && free ? free : fallback
+  }
   if (works) {
     addSpace(
       'cowork',
-      midMorning,
+      quietTime('cowork', midMorning),
       'Settle in for focused work',
       'You get a quiet desk for the morning, with booths for calls.',
     )
   } else {
     addSpace(
       'pool',
-      midMorning,
+      quietTime('pool', midMorning),
       'An easy swim',
       'You loosen off with a few calm lengths while the pool is quiet.',
     )
