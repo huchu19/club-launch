@@ -1,3 +1,4 @@
+import { APICallError } from 'ai'
 import { MockLanguageModelV4 } from 'ai/test'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createMockConciergeModel, mockConciergePlan, userText } from '@/lib/ai/mock-models'
@@ -142,6 +143,42 @@ describe('planFirstDay', () => {
     const result = await plan('quota', model)
     expect(result.kind).toBe('unavailable')
     expect(model.doGenerateCalls).toHaveLength(1)
+  })
+
+  it('retries once after a short pause when the model is overloaded', async () => {
+    let calls = 0
+    const overloaded = () =>
+      new APICallError({
+        message: 'This model is currently experiencing high demand.',
+        url: 'mock://gemini',
+        requestBodyValues: {},
+        statusCode: 503,
+      })
+    const flaky = new MockLanguageModelV4({
+      doGenerate: async ({ prompt }) => {
+        if (++calls === 1) throw overloaded()
+        return reply(mockConciergePlan(userText(prompt)))
+      },
+    })
+    const deps = { repository: demoRepository, overloadDelayMs: 1 }
+    const ok = await planFirstDay(
+      { club: mayfair, plans, message: 'Yoga please', chips: [] },
+      { ...deps, model: () => flaky },
+    )
+    expect(ok.kind).toBe('planned')
+    expect(calls).toBe(2)
+
+    const down = new MockLanguageModelV4({
+      doGenerate: async () => {
+        throw overloaded()
+      },
+    })
+    const failed = await planFirstDay(
+      { club: mayfair, plans, message: 'Yoga please', chips: [] },
+      { ...deps, model: () => down },
+    )
+    expect(failed.kind).toBe('unavailable')
+    expect(down.doGenerateCalls).toHaveLength(2)
   })
 
   it('is unavailable when no model is configured', async () => {

@@ -1,4 +1,5 @@
 import {
+  APICallError,
   generateText,
   NoObjectGeneratedError,
   NoOutputGeneratedError,
@@ -34,6 +35,9 @@ import { toDayPlanView } from './view'
 
 export const MAX_PLAN_ATTEMPTS = 2
 
+/** Pause before retrying a model that reported it was temporarily overloaded. */
+export const OVERLOAD_RETRY_DELAY_MS = 1500
+
 export type ConciergeResult =
   | { kind: 'planned'; plan: DayPlanView }
   | { kind: 'refusal' | 'failed' | 'unavailable'; message: string }
@@ -51,6 +55,8 @@ export type ConciergeDeps = {
   /** Called lazily so a missing API key becomes "unavailable", not a crash. */
   model: () => LanguageModel
   newId?: () => string
+  /** Override the overload back-off (tests). */
+  overloadDelayMs?: number
 }
 
 const ALPHABET = 'abcdefghijkmnpqrstuvwxyz23456789'
@@ -67,6 +73,33 @@ function describe(error: unknown): string {
     return `${error.name}${status ? ` ${status}` : ''}: ${error.message}`
   }
   return String(error)
+}
+
+/** 5xx from the provider ("high demand"): usually clears in a second or two, unlike quota. */
+function isOverloaded(error: unknown): boolean {
+  return APICallError.isInstance(error) && (error.statusCode ?? 0) >= 500
+}
+
+/** One structured call, retried once after a short pause if the model is overloaded. */
+async function requestPlan(model: LanguageModel, prompt: string, overloadDelayMs: number) {
+  for (let tries = 1; ; tries++) {
+    try {
+      const result = await generateText({
+        model,
+        instructions: CONCIERGE_INSTRUCTIONS,
+        prompt,
+        output: Output.object({ schema: planOutputSchema }),
+        temperature: 0.4,
+        // Retries are handled here and in planFirstDay; quota errors don't clear in seconds.
+        maxRetries: 0,
+      })
+      return planOutputSchema.parse(result.output)
+    } catch (error) {
+      if (tries > 1 || !isOverloaded(error)) throw error
+      console.warn('[concierge] model overloaded, retrying once:', describe(error))
+      await new Promise((resolve) => setTimeout(resolve, overloadDelayMs))
+    }
+  }
 }
 
 export async function planFirstDay(
@@ -89,16 +122,11 @@ export async function planFirstDay(
   for (let attempt = 1; attempt <= MAX_PLAN_ATTEMPTS; attempt++) {
     let output: PlanOutput
     try {
-      const result = await generateText({
+      output = await requestPlan(
         model,
-        instructions: CONCIERGE_INSTRUCTIONS,
-        prompt: buildConciergePrompt(context, message, input.chips, problems),
-        output: Output.object({ schema: planOutputSchema }),
-        temperature: 0.4,
-        // Our loop is the single retry; quota errors don't clear in seconds.
-        maxRetries: 0,
-      })
-      output = planOutputSchema.parse(result.output)
+        buildConciergePrompt(context, message, input.chips, problems),
+        deps.overloadDelayMs ?? OVERLOAD_RETRY_DELAY_MS,
+      )
     } catch (error) {
       const badOutput =
         NoObjectGeneratedError.isInstance(error) ||
