@@ -13,10 +13,25 @@ export const leadSchema = z.object({
 
 export type Lead = z.infer<typeof leadSchema>
 
+/**
+ * The visitor's planned first day, when they booked from it: what the tour
+ * guide sees about their interests. Built from the stored plan, never from the
+ * visitor's own words.
+ */
+export type LeadDayPlan = {
+  id: string
+  day: string
+  summary: string
+  stops: Array<{ time: string; space: string; activity: string }>
+  recommendedPlanName?: string
+}
+
+export type LeadSubmission = { lead: Lead; dayPlan?: LeadDayPlan }
+
 /** Where tour requests go. v1 ships a mock; a real CRM implements the same shape. */
 export interface CrmAdapter {
   readonly name: string
-  submitLead(lead: Lead): Promise<{ id: string }>
+  submitLead(submission: LeadSubmission): Promise<{ id: string }>
 }
 
 /**
@@ -25,13 +40,13 @@ export interface CrmAdapter {
  */
 export async function submitLeadWithRetry(
   adapter: CrmAdapter,
-  lead: Lead,
+  submission: LeadSubmission,
 ): Promise<{ id: string }> {
   try {
-    return await adapter.submitLead(lead)
+    return await adapter.submitLead(submission)
   } catch (firstError) {
     console.warn(`[crm:${adapter.name}] submit failed, retrying once:`, errorMessage(firstError))
-    return adapter.submitLead(lead)
+    return adapter.submitLead(submission)
   }
 }
 

@@ -29,6 +29,12 @@ actually ask.
   block is one Sanity type and one React component with its own Storybook stories and tests.
   Editors arrange blocks in the embedded Studio at `/studio` and publish; the live page updates
   through a signed webhook, without a redeploy.
+- **Plan your first day.** Visitors describe their week (or tap a quick option) and get a
+  4–6 stop timeline through a day at the club, built from its real spaces, hours and timetable.
+  Every stop is checked against the club's data before it is shown, with one retry if the model
+  gets something wrong. Health mentions always carry a caveat to see a professional. "Book a tour
+  for this day" attaches the plan to the tour request, so the team can shape the visit; the
+  visitor's own words are never stored or shared.
 - **Tour booking.** An accessible form that is validated on both client and server, with a
   honeypot, per-IP rate limiting, and a `CrmAdapter` interface that retries once. v1 ships a mock
   adapter that logs a redacted line.
@@ -59,6 +65,7 @@ flowchart LR
     repo[("Content repository<br/>Sanity or demo data")]
     tour["POST /api/tour"]
     faq["POST /api/faq<br/>streams text"]
+    concierge["POST /api/concierge<br/>validated day plan"]
     draftApi["POST /api/admin/draft<br/>basic auth"]
     revalidate["POST /api/revalidate<br/>signature checked"]
   end
@@ -66,6 +73,7 @@ flowchart LR
   page -- "tagged, cached reads" --> repo
   page --> tour
   page --> faq
+  page --> concierge
   drafter --> draftApi
   repo <--> sanity[("Sanity<br/>private dataset")]
   studio <--> sanity
@@ -73,6 +81,8 @@ flowchart LR
   revalidate -- "revalidateTag" --> page
   tour --> crm["CrmAdapter<br/>(mock in v1)"]
   faq -- "club facts + question" --> gemini["Gemini<br/>(fixtures when AI_MOCK=1)"]
+  concierge -- "spaces + timetable + message" --> gemini
+  concierge -- "structured day plan" --> sanity
   draftApi -- "club facts + brief" --> gemini
   faq -- "pending FAQ item" --> sanity
   draftApi -- "drafts.* page" --> sanity
@@ -112,7 +122,10 @@ that `pnpm seed` writes. CI, e2e and local development without credentials use t
   the instructions say to treat it only as a question. Emails and phone numbers are redacted
   before the model or the CMS sees them. Form submissions never go to the model.
 - **Everything is validated with zod**: every API input, the drafter's output (retried once, then
-  a clear error), and the FAQ answer before it is saved.
+  a clear error), and the FAQ answer before it is saved. Day plans are also checked against the
+  club's real spaces, opening hours and timetable, and the problems are fed back for one retry.
+- **Health mentions get a caveat, never advice.** The concierge may suggest gentle classes or
+  recovery, and the server guarantees a caveat pointing to a GP or physiotherapist.
 - **Refusals and fallbacks.** Medical, personal-data and unlisted-price questions get a short,
   polite pointer to a tour. Quota and API errors return a friendly fallback, and nothing is
   saved.
@@ -121,13 +134,14 @@ that `pnpm seed` writes. CI, e2e and local development without credentials use t
 
 | Layer | What | Where |
 |---|---|---|
-| Unit (Vitest) | Schemas, normalisation, grounding context, prompt fencing, redaction, rate limiter, CRM retry, drafter retry, number guard, publish rule, JSON-LD, webhook signatures, API routes | `**/*.test.ts` |
+| Unit (Vitest) | Schemas, normalisation, grounding context, prompt fencing, redaction, rate limiter, CRM retry, drafter retry, number guard, publish rule, day-plan validator and retry, health caveats, JSON-LD, webhook signatures, API routes | `**/*.test.ts` |
 | Component (Storybook + Vitest browser) | Every component in light, dark and mobile, with edge cases and interaction tests; any axe violation fails the build | `**/*.stories.tsx` |
-| End to end (Playwright + axe) | Keyboard-only tour booking; FAQ streaming, session-only pending answers, cache hits, refusals and the quota fallback; the drafter; admin auth | `e2e/` |
+| End to end (Playwright + axe) | Keyboard-only tour booking; keyboard-only day planning and booking a tour for that day; health caveats and refusals; FAQ streaming, session-only pending answers, cache hits, refusals and the quota fallback; the drafter; admin auth | `e2e/` |
 
 All AI calls in CI and e2e use `AI_MOCK=1`: deterministic fixtures that still run through the real
-AI SDK code (`MockLanguageModelV4`). Ask a question containing "quota" to trigger the quota
-fixture.
+AI SDK code (`MockLanguageModelV4`). A question or day-planning message containing "quota"
+triggers the quota fixture; a planning message containing "retry" returns an invalid plan first,
+to exercise the validator's retry.
 
 ## How I built this
 
@@ -153,6 +167,7 @@ what to configure. With Sanity configured:
 ```bash
 pnpm seed           # market, a fully built Mayfair-style page, a Moorgate-style club with facts only
 pnpm seed --reset   # also removes Moorgate drafts and AI FAQ items, to rehearse the demo
+pnpm seed --update  # only adds missing documents, fields and blocks; safe on a live dataset
 ```
 
 | Command | What it does |

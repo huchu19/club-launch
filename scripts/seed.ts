@@ -6,11 +6,14 @@
 //   pnpm seed            create or refresh the demo content
 //   pnpm seed --reset    also delete Moorgate pages (incl. drafts) and AI-drafted
 //                        FAQ items, to rehearse the live demo from a clean slate
+//   pnpm seed --update   only add what is missing: new documents, new top-level
+//                        fields and new page blocks. Never overwrites edits made
+//                        in the Studio, so it is safe to run against production.
 import { createReadStream, existsSync } from 'node:fs'
 import path from 'node:path'
 import { createClient } from '@sanity/client'
 import { demoClubs, demoFaqs, demoImages, demoPages, MOORGATE_ID } from '../lib/content/demo-data'
-import { buildSeedDocuments } from '../lib/content/seed-documents'
+import { buildSeedDocuments, type SeedDocument } from '../lib/content/seed-documents'
 import type { ImageData } from '../lib/content/types'
 
 // Loads variables from .env.local without printing them.
@@ -20,6 +23,7 @@ const projectId = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID
 const dataset = process.env.NEXT_PUBLIC_SANITY_DATASET || 'production'
 const token = process.env.SANITY_API_WRITE_TOKEN
 const reset = process.argv.includes('--reset')
+const update = process.argv.includes('--update')
 
 if (!projectId || !token) {
   console.error(
@@ -50,8 +54,60 @@ async function uploadImages(): Promise<Map<string, string>> {
   return assets
 }
 
+type Keyed = { _key: string }
+
+/** Adds missing documents, top-level fields and page blocks; changes nothing else. */
+async function addMissing(docs: SeedDocument[]) {
+  const existing = await client.getDocuments<SeedDocument>(docs.map((d) => d._id))
+  const tx = client.transaction()
+  const changes: string[] = []
+
+  docs.forEach((doc, index) => {
+    const current = existing[index]
+    if (!current) {
+      tx.createIfNotExists(doc)
+      changes.push(`created ${doc._id}`)
+      return
+    }
+    const missing = Object.fromEntries(
+      Object.entries(doc).filter(([key]) => !key.startsWith('_') && current[key] === undefined),
+    )
+    if (Object.keys(missing).length) {
+      tx.patch(doc._id, (p) => p.setIfMissing(missing))
+      changes.push(`${doc._id}: added ${Object.keys(missing).join(', ')}`)
+    }
+
+    // New blocks go after the block that precedes them in the demo page.
+    const seedBlocks = (doc.blocks as Keyed[] | undefined) ?? []
+    const present = new Set(((current.blocks as Keyed[] | undefined) ?? []).map((b) => b._key))
+    if (!current.blocks) return
+    seedBlocks.forEach((block, i) => {
+      if (present.has(block._key)) return
+      const before = seedBlocks
+        .slice(0, i)
+        .reverse()
+        .find((b) => present.has(b._key))
+      tx.patch(doc._id, (p) =>
+        before
+          ? p.insert('after', `blocks[_key=="${before._key}"]`, [block])
+          : p.insert('before', 'blocks[0]', [block]),
+      )
+      present.add(block._key)
+      changes.push(`${doc._id}: added block ${block._key}`)
+    })
+  })
+
+  if (changes.length === 0) {
+    console.log('  update nothing to add')
+    return
+  }
+  await tx.commit()
+  for (const change of changes) console.log(`  update ${change}`)
+}
+
 async function main() {
-  console.log(`Seeding ${projectId}/${dataset}${reset ? ' (with --reset)' : ''}`)
+  const mode = reset ? ' (with --reset)' : update ? ' (--update: add missing only)' : ''
+  console.log(`Seeding ${projectId}/${dataset}${mode}`)
 
   if (reset) {
     await client.delete({
@@ -72,6 +128,12 @@ async function main() {
           alt: image.alt,
         }
       : undefined
+  }
+
+  if (update) {
+    await addMissing(buildSeedDocuments(resolveImage))
+    console.log('Done.')
+    return
   }
 
   const tx = client.transaction()

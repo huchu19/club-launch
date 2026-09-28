@@ -1,5 +1,8 @@
 import { APICallError, simulateReadableStream } from 'ai'
 import { MockLanguageModelV4 } from 'ai/test'
+import { mentionsHealth } from '@/lib/concierge/prompt'
+import type { PlanOutput } from '@/lib/concierge/schema'
+import { weekdays, type ScheduleEntry } from '@/lib/content/types'
 import { normalizeQuestion } from '@/lib/faq/normalize'
 import { refusalText } from '@/lib/faq/prompt'
 
@@ -215,5 +218,184 @@ export function createMockDrafterModel(): MockLanguageModelV4 {
       usage,
       warnings: [],
     }),
+  })
+}
+
+// ---------------------------------------------------------------------------
+// Concierge fixtures: a normal plan, a health mention with a caveat, an
+// invalid-then-valid reply, an off-topic message and a quota error. Plans are
+// built from the club context in the prompt, so they use the real timetable.
+// ---------------------------------------------------------------------------
+
+/** A message containing this word gets an invalid plan first, then a valid one on retry. */
+export const MOCK_RETRY_TRIGGER = 'retry'
+
+const OFF_TOPIC =
+  /\b(ignore (all|your|the|previous)|poem|recipe|joke|essay|homework|bitcoin|write (me )?(some )?code)\b/i
+
+type PromptSpace = {
+  id: string
+  category: string
+  openingHours?: Array<{ day: string; opens: string; closes: string }>
+}
+type PromptContext = {
+  club?: string
+  openingHours?: Array<{ day: string; opens: string; closes: string }>
+  spaces?: PromptSpace[]
+  schedule?: ScheduleEntry[]
+  plans?: Array<{ name: string }>
+}
+
+const toMinutes = (time: string) => Number(time.slice(0, 2)) * 60 + Number(time.slice(3, 5))
+const toTime = (total: number) =>
+  `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`
+/** Minutes after `time`, rounded up to the next half hour. */
+const laterBy = (time: string, minutes: number) =>
+  toTime(Math.ceil((toMinutes(time) + minutes) / 30) * 30)
+
+/** Pure decision logic of the concierge mock, exported for tests. */
+export function mockConciergePlan(promptText: string): PlanOutput {
+  const context = JSON.parse(between(promptText, 'club_context') || '{}') as PromptContext
+  const text = `${between(promptText, 'visitor_message')} ${between(promptText, 'chosen_options')}`
+  const lower = text.toLowerCase()
+  const retrying = promptText.includes('<problems_with_previous_plan>')
+
+  const works = /\b(work|desk|laptop|calls?|meetings?)\b/.test(lower)
+  const event = /\b(event|marathon|race|triathlon|half)\b/.test(lower)
+  const health = mentionsHealth(text)
+  const gentle = health || /\b(unwind|relax|stress\w*|slow|calm|tired)\b/.test(lower)
+  const day =
+    weekdays.find((d) => lower.includes(d.toLowerCase())) ?? (event ? 'Saturday' : 'Wednesday')
+
+  const spaces = context.spaces ?? []
+  const byCategory = (category: string) => spaces.find((s) => s.category === category)
+  const today = (context.schedule ?? [])
+    .filter((entry) => entry.day === day)
+    .sort((a, b) => a.time.localeCompare(b.time))
+  const open = (spaceId: string, time: string) => {
+    const space = spaces.find((s) => s.id === spaceId)
+    const hours =
+      space?.openingHours?.find((h) => h.day === day) ??
+      context.openingHours?.find((h) => h.day === day)
+    return Boolean(hours && time >= hours.opens && time < hours.closes)
+  }
+
+  const stops: PlanOutput['stops'] = []
+  const addClass = (entry: ScheduleEntry | undefined, reason: string) => {
+    if (entry) {
+      stops.push({
+        time: entry.time,
+        spaceId: entry.spaceId,
+        className: entry.name,
+        activity: entry.name,
+        reason,
+      })
+    }
+  }
+  const addSpace = (category: string, time: string, activity: string, reason: string) => {
+    const space = byCategory(category)
+    if (space && open(space.id, time) && !stops.some((s) => s.time === time)) {
+      stops.push({ time, spaceId: space.id, className: '', activity, reason })
+    }
+  }
+
+  const morning = today.filter((e) => e.time >= '07:00' && e.time < '11:00')
+  const wanted = event ? 'high' : gentle ? 'low' : 'medium'
+  const first = morning.find((e) => e.intensity === wanted) ?? morning[0]
+  addClass(
+    first,
+    gentle
+      ? 'You start slowly, with an unhurried class that eases you into the day.'
+      : 'You start the day moving, in a class that suits how you like to train.',
+  )
+
+  const lateMorning = first ? laterBy(first.time, first.durationMin + 30) : '10:00'
+  const midMorning = lateMorning > '10:00' ? lateMorning : '10:00'
+  if (works) {
+    addSpace(
+      'cowork',
+      midMorning,
+      'Settle in for focused work',
+      'You get a quiet desk for the morning, with booths for calls.',
+    )
+  } else {
+    addSpace(
+      'pool',
+      midMorning,
+      'An easy swim',
+      'You loosen off with a few calm lengths while the pool is quiet.',
+    )
+  }
+  addSpace(
+    'food',
+    '13:00',
+    'Lunch in the garden kitchen',
+    'You break the day with a seasonal lunch in the garden.',
+  )
+
+  const evening = today.filter((e) => e.time >= '16:00')
+  const last = evening.find((e) => e.intensity === (event ? 'high' : 'low')) ?? evening[0]
+  addClass(
+    last,
+    event
+      ? 'You finish with a session that builds towards your event.'
+      : 'You wind down with a guided session as the day slows.',
+  )
+  if (last) {
+    addSpace(
+      'spa',
+      laterBy(last.time, last.durationMin + 15),
+      'Time in the thermal suite',
+      'You end the day warm and unhurried, looking out onto the garden.',
+    )
+  }
+  if (stops.length < 4) {
+    addSpace('spa', '15:00', 'Time in the thermal suite', 'You take a quiet hour to recover.')
+  }
+  stops.sort((a, b) => a.time.localeCompare(b.time))
+
+  if (lower.includes(MOCK_RETRY_TRIGGER) && !retrying && stops[0]) {
+    stops[0] = { ...stops[0], spaceId: 'rooftop-bar' }
+  }
+
+  const plans = context.plans ?? []
+  const plan = (works && plans.find((p) => /workspace/i.test(p.name))) || plans[0]
+  const character = gentle ? 'gentle' : event ? 'purposeful' : 'balanced'
+  return {
+    offTopic: OFF_TOPIC.test(text),
+    day,
+    summary: `A ${character} ${day} at ${context.club ?? 'the club'}${works ? ', planned around your working day' : ''}.`,
+    stops: stops.slice(0, 6),
+    recommendedPlanName: plan?.name ?? '',
+    caveats: health
+      ? [
+          'Check with a GP or physiotherapist before starting anything new, and tell the team so they can adapt classes for you.',
+        ]
+      : [],
+  }
+}
+
+export function createMockConciergeModel(): MockLanguageModelV4 {
+  return new MockLanguageModelV4({
+    provider: 'mock',
+    modelId: 'mock-concierge',
+    doGenerate: async ({ prompt }) => {
+      const text = userText(prompt)
+      if (new RegExp(`\\b${MOCK_QUOTA_TRIGGER}\\b`, 'i').test(between(text, 'visitor_message'))) {
+        throw new APICallError({
+          message: 'Resource has been exhausted (e.g. check quota).',
+          url: 'mock://gemini',
+          requestBodyValues: {},
+          statusCode: 429,
+          isRetryable: false,
+        })
+      }
+      return {
+        content: [{ type: 'text', text: JSON.stringify(mockConciergePlan(text)) }],
+        finishReason: { unified: 'stop', raw: undefined },
+        usage,
+        warnings: [],
+      }
+    },
   })
 }

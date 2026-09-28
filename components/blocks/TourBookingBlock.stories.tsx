@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/nextjs-vite'
 import { expect, fireEvent, fn, userEvent, waitFor } from 'storybook/test'
+import { clearSharedDayPlan, shareDayPlan } from '@/lib/concierge/shared-plan-store'
 import { addDaysIso, todayIso } from '@/lib/tour/schema'
 import { dark, mobile } from '../../.storybook/globals'
 import { blockOf, tourClub } from './story-fixtures'
@@ -17,6 +18,7 @@ const meta = {
     club: tourClub,
     submit: fn<SubmitTour>(async () => ({ ok: true, reference: 'TOUR-7F3K2Q' })),
   },
+  beforeEach: () => clearSharedDayPlan(),
 } satisfies Meta<typeof TourBookingBlock>
 
 export default meta
@@ -79,5 +81,35 @@ export const ServerErrorKeepsInput: Story = {
     await expect(await canvas.findByText('Your request was not sent')).toBeVisible()
     await expect(canvas.getByLabelText('Full name')).toHaveValue('Sam Rivera')
     await expect(canvas.getByLabelText('Email address')).toHaveValue('sam@example.com')
+  },
+}
+
+/** A first-day plan from the concierge block travels with the request. */
+export const WithAttachedDayPlan: Story = {
+  beforeEach: () => {
+    shareDayPlan({ clubSlug: tourClub.slug, id: 'storyplan0000001', day: 'Wednesday' })
+    return () => clearSharedDayPlan()
+  },
+  play: async ({ canvas, args }) => {
+    await expect(canvas.getByText('Your Wednesday plan is attached')).toBeVisible()
+    await fillForm(canvas)
+    await userEvent.click(canvas.getByRole('button', { name: 'Request a tour' }))
+    await expect(
+      await canvas.findByText('Your Wednesday plan is attached, so your tour can follow it.'),
+    ).toBeVisible()
+    await expect(args.submit).toHaveBeenCalledWith(
+      expect.objectContaining({ dayPlanId: 'storyplan0000001' }),
+    )
+  },
+}
+
+export const RemoveAttachedDayPlan: Story = {
+  beforeEach: () => {
+    shareDayPlan({ clubSlug: tourClub.slug, id: 'storyplan0000001', day: 'Wednesday' })
+    return () => clearSharedDayPlan()
+  },
+  play: async ({ canvas }) => {
+    await userEvent.click(canvas.getByRole('button', { name: 'Remove the plan' }))
+    await waitFor(() => expect(canvas.queryByText('Your Wednesday plan is attached')).toBeNull())
   },
 }

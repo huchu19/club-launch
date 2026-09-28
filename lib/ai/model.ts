@@ -2,7 +2,7 @@ import 'server-only'
 import { createGoogle } from '@ai-sdk/google'
 import type { LanguageModel } from 'ai'
 import { serverEnv } from '@/lib/env'
-import { createMockDrafterModel, createMockFaqModel } from './mock-models'
+import { createMockConciergeModel, createMockDrafterModel, createMockFaqModel } from './mock-models'
 
 export class AiUnavailableError extends Error {}
 
@@ -21,4 +21,8 @@ export function getFaqModel(): LanguageModel {
 
 export function getDrafterModel(): LanguageModel {
   return serverEnv().AI_MOCK ? createMockDrafterModel() : gemini()
+}
+
+export function getConciergeModel(): LanguageModel {
+  return serverEnv().AI_MOCK ? createMockConciergeModel() : gemini()
 }

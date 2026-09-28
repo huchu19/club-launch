@@ -28,6 +28,21 @@ function clubDocument(club: Club) {
     })),
     phone: club.phone,
     facilities: club.facilities.map((f) => ({ _key: arrayKey(), _type: 'facility', ...f })),
+    spaces: club.spaces.map((space) => ({
+      _key: space.id,
+      _type: 'space',
+      ...space,
+      openingHours: space.openingHours.map((h) => ({
+        _key: arrayKey(),
+        _type: 'openingHoursEntry',
+        ...h,
+      })),
+    })),
+    schedule: club.schedule.map((entry) => ({
+      _key: `${entry.day.slice(0, 3).toLowerCase()}-${entry.time.replace(':', '')}-${entry.spaceId}`,
+      _type: 'scheduleEntry',
+      ...entry,
+    })),
     facts: club.facts.map((f) => ({ _key: arrayKey(), _type: 'fact', ...f })),
     seo: club.seo,
   })

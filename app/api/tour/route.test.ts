@@ -1,5 +1,8 @@
 import { NextRequest } from 'next/server'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { MAYFAIR_ID, MOORGATE_ID } from '@/lib/content/demo-data'
+import { demoRepository, resetDemoStore } from '@/lib/content/demo-repository'
+import type { DayPlan } from '@/lib/content/types'
 import type { CrmAdapter } from '@/lib/crm'
 import { addDaysIso, todayIso } from '@/lib/tour/schema'
 
@@ -31,6 +34,7 @@ const valid = () => ({
 })
 
 beforeEach(() => {
+  resetDemoStore()
   adapter = { name: 'test', submitLead: vi.fn(async () => ({ id: 'TOUR-TEST01' })) }
   vi.spyOn(console, 'info').mockImplementation(() => {})
   vi.spyOn(console, 'warn').mockImplementation(() => {})
@@ -43,13 +47,14 @@ describe('POST /api/tour', () => {
     const res = await POST(tourRequest(valid()))
     expect(res.status).toBe(200)
     expect(await res.json()).toEqual({ reference: 'TOUR-TEST01' })
-    expect(adapter.submitLead).toHaveBeenCalledWith(
-      expect.objectContaining({
+    expect(adapter.submitLead).toHaveBeenCalledWith({
+      lead: expect.objectContaining({
         clubSlug: 'linden-mayfair',
         email: 'sam@example.com',
         timeSlot: 'evening',
       }),
-    )
+      dayPlan: undefined,
+    })
   })
 
   it('returns field errors for invalid input and does not call the CRM', async () => {
@@ -94,5 +99,58 @@ describe('POST /api/tour', () => {
     expect(blocked.status).toBe(429)
     expect(Number(blocked.headers.get('Retry-After'))).toBeGreaterThan(0)
     expect((await POST(tourRequest(valid(), '198.51.100.8'))).status).toBe(200)
+  })
+
+  describe('with a first-day plan attached', () => {
+    const dayPlan = (overrides: Partial<DayPlan> = {}): DayPlan => ({
+      publicId: 'plan0000test0001',
+      clubId: MAYFAIR_ID,
+      day: 'Wednesday',
+      summary: 'A balanced Wednesday.',
+      stops: [
+        {
+          time: '08:00',
+          spaceId: 'movement-studio',
+          className: 'Vinyasa yoga',
+          activity: 'Vinyasa yoga',
+          reason: 'You start the day moving.',
+        },
+      ],
+      recommendedPlanName: 'Club',
+      caveats: [],
+      chips: [],
+      ...overrides,
+    })
+
+    it('sends the plan to the CRM with space names resolved', async () => {
+      await demoRepository.createDayPlan(dayPlan())
+      const res = await POST(tourRequest({ ...valid(), dayPlanId: 'plan0000test0001' }))
+      expect(res.status).toBe(200)
+      expect(adapter.submitLead).toHaveBeenCalledWith({
+        lead: expect.objectContaining({ email: 'sam@example.com' }),
+        dayPlan: {
+          id: 'plan0000test0001',
+          day: 'Wednesday',
+          summary: 'A balanced Wednesday.',
+          stops: [{ time: '08:00', space: 'Movement studio', activity: 'Vinyasa yoga' }],
+          recommendedPlanName: 'Club',
+        },
+      })
+    })
+
+    it('ignores a plan from another club, or one that does not exist', async () => {
+      await demoRepository.createDayPlan(dayPlan({ clubId: MOORGATE_ID }))
+      await POST(tourRequest({ ...valid(), dayPlanId: 'plan0000test0001' }))
+      await POST(tourRequest({ ...valid(), dayPlanId: 'nosuchplan000000' }))
+      for (const [call] of vi.mocked(adapter.submitLead).mock.calls) {
+        expect(call.dayPlan).toBeUndefined()
+      }
+      expect(adapter.submitLead).toHaveBeenCalledTimes(2)
+    })
+
+    it('rejects a malformed plan id', async () => {
+      const res = await POST(tourRequest({ ...valid(), dayPlanId: '../../etc' }))
+      expect(res.status).toBe(400)
+    })
   })
 })

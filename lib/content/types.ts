@@ -134,6 +134,16 @@ export const faqBlockSchema = z.object({
   allowQuestions: z.preprocess((v) => v ?? false, z.boolean()),
 })
 
+export const conciergeBlockSchema = z.object({
+  _type: z.literal('conciergeBlock'),
+  ...keyed,
+  eyebrow: opt(z.string()),
+  heading: z.string(),
+  intro: opt(z.string()),
+  /** Optional quick answers, e.g. "I work from home". */
+  chips: list(z.string()),
+})
+
 export const pageBlockSchema = z.discriminatedUnion('_type', [
   heroBlockSchema,
   facilitiesBlockSchema,
@@ -141,6 +151,7 @@ export const pageBlockSchema = z.discriminatedUnion('_type', [
   ratesBlockSchema,
   tourBookingBlockSchema,
   faqBlockSchema,
+  conciergeBlockSchema,
 ])
 
 export type HeroBlockData = z.infer<typeof heroBlockSchema>
@@ -150,6 +161,7 @@ export type SpaRecoveryItem = z.infer<typeof spaRecoveryItemSchema>
 export type RatesBlockData = z.infer<typeof ratesBlockSchema>
 export type TourBookingBlockData = z.infer<typeof tourBookingBlockSchema>
 export type FaqBlockData = z.infer<typeof faqBlockSchema>
+export type ConciergeBlockData = z.infer<typeof conciergeBlockSchema>
 export type PageBlock = z.infer<typeof pageBlockSchema>
 export type PageBlockType = PageBlock['_type']
 
@@ -185,6 +197,35 @@ export const addressSchema = z.object({
 })
 export type Address = z.infer<typeof addressSchema>
 
+/** 24-hour "HH:MM". */
+export const timeOfDaySchema = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/)
+
+/** A bookable or usable space in the club, referenced by the schedule and day plans. */
+export const spaceSchema = z.object({
+  id: z.string().regex(/^[a-z0-9-]+$/),
+  name: z.string(),
+  category: z.enum(facilityCategories),
+  description: opt(z.string()),
+  typicalUses: list(z.string()),
+  /** Overrides the club's hours for this space; empty means the club's hours. */
+  openingHours: list(openingHoursSchema),
+})
+export type Space = z.infer<typeof spaceSchema>
+
+export const intensities = ['low', 'medium', 'high'] as const
+export type Intensity = (typeof intensities)[number]
+
+/** One class in the sample weekly timetable. */
+export const scheduleEntrySchema = z.object({
+  day: z.enum(weekdays),
+  time: timeOfDaySchema,
+  name: z.string(),
+  spaceId: z.string(),
+  durationMin: z.number().int().positive(),
+  intensity: z.enum(intensities),
+})
+export type ScheduleEntry = z.infer<typeof scheduleEntrySchema>
+
 export const clubSchema = z.object({
   _id: z.string(),
   name: z.string(),
@@ -197,10 +238,41 @@ export const clubSchema = z.object({
   openingHours: list(openingHoursSchema),
   phone: opt(z.string()),
   facilities: list(facilitySchema),
+  spaces: list(spaceSchema),
+  schedule: list(scheduleEntrySchema),
   facts: list(factSchema),
   seo: opt(seoSchema),
 })
 export type Club = z.infer<typeof clubSchema>
+
+/** One stop in a visitor's planned first day. */
+export const dayPlanStopSchema = z.object({
+  time: timeOfDaySchema,
+  spaceId: z.string(),
+  /** Set when the stop is a scheduled class. */
+  className: opt(z.string()),
+  activity: z.string(),
+  reason: z.string(),
+})
+export type DayPlanStop = z.infer<typeof dayPlanStopSchema>
+
+/**
+ * A stored first-day plan. Holds the structured plan only: the visitor's own
+ * words are never stored.
+ */
+export const dayPlanSchema = z.object({
+  publicId: z.string(),
+  clubId: z.string(),
+  day: z.enum(weekdays),
+  summary: z.string(),
+  stops: list(dayPlanStopSchema),
+  recommendedPlanName: opt(z.string()),
+  caveats: list(z.string()),
+  /** Which of the block's quick options were chosen. */
+  chips: list(z.string()),
+  createdAt: opt(z.string()),
+})
+export type DayPlan = z.infer<typeof dayPlanSchema>
 
 export const faqStatuses = ['approved', 'pending', 'rejected'] as const
 export type FaqStatus = (typeof faqStatuses)[number]

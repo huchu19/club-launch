@@ -7,6 +7,7 @@ import {
   clubPageSchema,
   clubPageSummarySchema,
   clubSchema,
+  dayPlanSchema,
 } from '@/lib/content/types'
 import {
   APPROVED_FAQS_QUERY,
@@ -15,6 +16,7 @@ import {
   CLUB_PAGE_QUERY,
   CLUB_PAGES_QUERY,
   CLUBS_WITH_PAGE_STATE_QUERY,
+  DAY_PLAN_QUERY,
   FAQ_CANDIDATES_QUERY,
 } from './queries'
 
@@ -65,6 +67,7 @@ describe('GROQ queries over the seeded dataset', () => {
     expect(page.blocks.map((b) => b._type)).toEqual([
       'heroBlock',
       'facilitiesBlock',
+      'conciergeBlock',
       'spaRecoveryBlock',
       'ratesBlock',
       'tourBookingBlock',
@@ -77,7 +80,7 @@ describe('GROQ queries over the seeded dataset', () => {
       width: 1600,
       height: 1000,
     })
-    const spa = page.blocks[2]
+    const spa = page.blocks.find((b) => b._type === 'spaRecoveryBlock')
     expect(spa?._type === 'spaRecoveryBlock' && spa.items.every((i) => i.image?.url)).toBe(true)
     // Approved FAQs only, most asked first.
     expect(page.faqs.map((f) => f._id)).toEqual([
@@ -168,5 +171,48 @@ describe('GROQ queries over the seeded dataset', () => {
     // Rows the drafter keeps also parse as club options.
     const rows = (await run(CLUBS_WITH_PAGE_STATE_QUERY)) as unknown[]
     expect(rows.every((row) => clubOptionSchema.safeParse(row).success)).toBe(true)
+  })
+
+  it('returns club spaces and the sample timetable, and reads a stored day plan', async () => {
+    const club = clubSchema.parse(await run(CLUB_BY_SLUG_QUERY, { slug: 'linden-mayfair' }))
+    expect(club.spaces.map((s) => s.id)).toContain('thermal-suite')
+    expect(club.spaces.find((s) => s.id === 'workspace')?.openingHours).toHaveLength(7)
+    expect(club.schedule.length).toBeGreaterThan(20)
+    // Every class takes place in a space the club has.
+    const ids = new Set(club.spaces.map((s) => s.id))
+    expect(club.schedule.every((entry) => ids.has(entry.spaceId))).toBe(true)
+
+    const stored = {
+      _id: 'dayPlan-abc123def456ghi7',
+      _type: 'dayPlan',
+      publicId: 'abc123def456ghi7',
+      club: { _type: 'reference', _ref: MAYFAIR_ID, _weak: true },
+      day: 'Wednesday',
+      summary: 'A balanced Wednesday.',
+      stops: [
+        {
+          _key: 'a',
+          _type: 'dayPlanStop',
+          time: '08:00',
+          spaceId: 'movement-studio',
+          className: 'Vinyasa yoga',
+          activity: 'Vinyasa yoga',
+          reason: 'You start the day moving.',
+        },
+      ],
+      recommendedPlanName: 'Club',
+      caveats: [],
+      chips: ['I work from home'],
+      createdAt: '2026-09-28T09:00:00.000Z',
+    }
+    const plan = dayPlanSchema.parse(
+      await run(DAY_PLAN_QUERY, { publicId: 'abc123def456ghi7' }, [...dataset, stored]),
+    )
+    expect(plan).toMatchObject({
+      clubId: MAYFAIR_ID,
+      day: 'Wednesday',
+      chips: ['I work from home'],
+    })
+    expect(plan.stops[0]?.className).toBe('Vinyasa yoga')
   })
 })
