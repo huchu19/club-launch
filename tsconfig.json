@@ -28,5 +28,5 @@
     ".storybook/**/*.ts",
     ".storybook/**/*.tsx"
   ],
-  "exclude": ["node_modules", "claude-code-kit", "storybook-static"]
+  "exclude": ["node_modules", ".agent", "storybook-static"]
 }

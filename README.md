@@ -9,7 +9,9 @@ always has the final say.
 - **Live app:** https://club-launch-kappa.vercel.app (club page:
   [/uk/clubs/linden-mayfair](https://club-launch-kappa.vercel.app/uk/clubs/linden-mayfair))
 - **Storybook:** https://club-launch-storybook.vercel.app
-- **90-second walkthrough:** _video link added after recording_
+- **Walkthrough video:** _link added after recording_
+- **Docs:** [architecture](docs/architecture.md), [roadmap](docs/roadmap.md),
+  [product spec](docs/SPEC.md), [design](docs/DESIGN.md)
 
 Designed around a premium operator's rollout of social wellness clubs, where existing gyms are
 relaunched one site at a time.
@@ -41,6 +43,9 @@ actually ask.
   robots file. Images go through Sanity's CDN.
 
 ## Architecture
+
+The full design, including request flows and the AI safety model, is in
+[docs/architecture.md](docs/architecture.md).
 
 ```mermaid
 flowchart LR
@@ -124,6 +129,14 @@ All AI calls in CI and e2e use `AI_MOCK=1`: deterministic fixtures that still ru
 AI SDK code (`MockLanguageModelV4`). Ask a question containing "quota" to trigger the quota
 fixture.
 
+## How I built this
+
+I designed the architecture, wrote the product specification and the acceptance criteria for each
+milestone, and used [Claude Code](https://claude.com/claude-code) as a pair programmer to implement
+them. Every change went through the test suite, accessibility checks and CI before it shipped, and
+I reviewed and refactored the output. The engineering standards the code follows are in
+[CLAUDE.md](CLAUDE.md).
+
 ## Run it locally
 
 Requires Node 24 and pnpm 12.
@@ -151,12 +164,8 @@ pnpm seed --reset   # also removes Moorgate drafts and AI FAQ items, to rehearse
 
 Environment variables are listed in [`.env.example`](.env.example).
 
-## What I'd do next with real systems
+## What's next
 
-- A real `CrmAdapter` (for example Salesforce or HubSpot) with idempotency keys and a dead-letter
-  queue, so no tour request is lost.
-- A shared rate limiter and FAQ cache (Redis or Vercel KV) so limits hold across instances.
-- Grouping of similar questions, with embeddings, so editors approve one answer for many phrasings.
-- Multiple markets and locales: the `market` document and URL segment already exist.
-- An editor dashboard: questions asked most, refusal rate, and time to approval.
-- Visual regression tests and Lighthouse budgets in CI.
+The member-facing features (a first-day concierge, a cost calculator, an explorable club map) and
+the operator tools that follow them are listed, with the value of each, in
+[docs/roadmap.md](docs/roadmap.md).

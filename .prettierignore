@@ -5,7 +5,6 @@ storybook-static
 coverage
 playwright-report
 test-results
-claude-code-kit
-claude-code-kit.zip
+.agent
 *.md
 .claude

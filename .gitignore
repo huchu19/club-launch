@@ -29,9 +29,9 @@ __screenshots__/
 .DS_Store
 *.log
 
-# setup kit (source material, already copied into docs/ and .claude/)
-claude-code-kit/
-claude-code-kit.zip
+# local working notes and editor tooling settings
+.agent/
+.claude/
 
 # vercel
 .vercel
