@@ -617,6 +617,31 @@ export type DemoFaq = {
   createdAt?: string
 }
 
+/** Moorgate's approved answers, from its facts only, so its drafted page can reach 100% readiness. */
+const moorgateFaqs: DemoFaq[] = [
+  [
+    'parking',
+    'Is there parking at the club?',
+    'There is no parking. Moorgate station is a two-minute walk away.',
+  ],
+  [
+    'members',
+    'What happens to my current membership?',
+    'Current members keep their membership through the conversion.',
+  ],
+  ['towels', 'Are towels provided?', 'Yes, towels are provided.'],
+  ['age', 'How old do I need to be to join?', 'Members must be 18 or over.'],
+  ['access', 'Is the club accessible?', 'The club has step-free access and a lift to every floor.'],
+].map(([id, question, answer], i) => ({
+  _id: `faq-moorgate-${id}`,
+  clubId: MOORGATE_ID,
+  question: question!,
+  answer: answer!,
+  status: 'approved' as const,
+  source: 'editor' as const,
+  askedCount: 5 - i,
+}))
+
 export const demoFaqs: DemoFaq[] = [
   {
     _id: 'faq-mayfair-parking',
@@ -667,4 +692,5 @@ export const demoFaqs: DemoFaq[] = [
     source: 'editor',
     askedCount: 4,
   },
+  ...moorgateFaqs,
 ]

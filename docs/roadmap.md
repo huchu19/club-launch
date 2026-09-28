@@ -19,6 +19,7 @@ Each item says what it is and what it's worth to a club operator.
 | Explorable club map: an illustrated floor plan with what's on in each space now and next, by mouse, touch or keyboard | Shows off the spaces that justify the price, and works for every visitor. |
 | Shareable "my club day" page and social card | Word-of-mouth referrals that carry the club's branding and link straight to a tour. |
 | "What it really costs" calculator: cost per visit, the joining fee spread over a year, and a comparison with paying separately | Answers the price objection on the page, including the joining fee, rather than on the phone. |
+| Launch readiness check in Studio: a score, a checklist and a publishing gate | No page goes live with placeholders, missing alt text, missing SEO or hidden joining fees. |
 | Question insights for club managers: most asked, grouped; what needs an answer; this week's questions; planner themes | Shows what prospects actually worry about, so FAQs and sales scripts keep up. |
 | CI with unit, component, accessibility and end-to-end tests | Changes ship without regressions, and accessibility is checked on every change. |
 
@@ -33,7 +34,6 @@ Each item says what it is and what it's worth to a club operator.
 
 | Milestone | Feature | Value to the operator |
 |---|---|---|
-| M15 | Launch readiness check in Studio, with a score and a publishing gate | No page goes live with placeholders, missing alt text, missing SEO or hidden joining fees. |
 | M16 | Founding member pre-sale with a live "places left" count | Builds a waiting list and early revenue for clubs that haven't opened yet. |
 | M17 | One source of club facts, enforced in CI | Hours, address and prices are edited once and stay consistent across the page, search results and AI answers. |
 

@@ -1,6 +1,7 @@
 import { DocumentTextIcon } from '@sanity/icons/DocumentText'
 import { defineArrayMember, defineField, defineType } from 'sanity'
 import { ClubPageInput } from '../components/ClubPageInput'
+import { readinessRule } from '../readiness-rule'
 import { placeholderRule } from '../validation'
 import { blockTypeNames } from './blocks'
 import { seoField } from './fields'
@@ -11,8 +12,9 @@ export const clubPage = defineType({
   type: 'document',
   icon: DocumentTextIcon,
   components: { input: ClubPageInput },
-  // Publishing is blocked while any [[placeholder]] remains (docs/SPEC.md §6).
-  validation: (rule) => rule.custom(placeholderRule),
+  // Publishing is blocked while any [[placeholder]] remains (docs/SPEC.md §6),
+  // and until every launch readiness check passes.
+  validation: (rule) => [rule.custom(placeholderRule), rule.custom(readinessRule)],
   fields: [
     defineField({
       name: 'club',
