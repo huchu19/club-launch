@@ -60,12 +60,12 @@ flowchart LR
 | Document | Purpose | Key fields |
 |---|---|---|
 | `market` | A country or region | `code` (`uk`), `locale` (`en-GB`), `currency` (`GBP`), typical local prices for the cost calculator's comparison (use, label, unit price, unit) |
-| `club` | The facts about one club, and the single source for everything that grounds the AI | name, slug, market, tier, status, address, geo, opening hours, phone, facilities, spaces (id, name, category, typical uses, optional own hours), sample timetable (day, time, class, space, duration, intensity), facts (label/value pairs such as the joining fee), SEO |
+| `club` | The facts about one club, and the single source for everything that grounds the AI | name, slug, market, tier, status, address, geo, time zone, opening hours, phone, facilities, spaces (id, name, category, typical uses, optional own hours), sample timetable (day, time, class, space, duration, intensity), an illustrative floor plan (floors of zones tied to spaces, plus decorative areas), facts (label/value pairs such as the joining fee), SEO |
 | `clubPage` | The page editors build for a club | club, title, ordered `blocks[]`, SEO override |
 | `faqItem` | A question and answer for one club | question, answer, `source` (`editor`/`ai`), `status` (`approved`/`pending`/`rejected`), `askedCount`, `normalizedQuestion` |
 | `dayPlan` | A visitor's planned first day, written by the concierge and read-only in Studio | public id, club (weak reference), day, summary, stops (time, space id, class, activity, reason), suggested membership, caveats, quick options chosen. Never the visitor's message. |
 
-A `clubPage` is an ordered list of blocks: `heroBlock`, `facilitiesBlock`, `conciergeBlock`
+A `clubPage` is an ordered list of blocks: `heroBlock`, `facilitiesBlock`, `clubMapBlock`, `conciergeBlock`
 (the first-day planner), `spaRecoveryBlock`, `ratesBlock`, `calculatorBlock` (the cost
 calculator), `tourBookingBlock` and `faqBlock`. Each block type has exactly one
 React component of the same name in `components/blocks`, with its own Storybook stories.
@@ -187,6 +187,29 @@ tour form, which shows that the plan is attached and lets the visitor remove it.
 loads the plan by id, checks it belongs to the same club, and passes `{ lead, dayPlan }` to the
 CRM adapter. The model runs before any contact details exist, so it never sees them.
 
+### Club map
+
+The floor plan is data on the club document: a `viewBox`, floors, and zones that are either
+rectangles or polygons, each tied to a space by id, plus decorative areas such as a garden.
+`lib/map/geometry.ts` parses shapes (malformed ones are dropped), places labels and orders
+zones top to bottom and left to right for the arrow keys.
+
+The map is an SVG `radiogroup`: each zone is a `radio` with an accessible name, one Tab stop
+(roving tabindex), and arrow keys that move and select, like any radio group. Floors are a tab
+list. Selecting a zone fills a details region whose space is reserved, so nothing on the page
+moves. A "View as list" toggle shows the same content as headed lists, and a polite status line
+announces the selection. Zones lift on hover and focus only when reduced motion isn't
+requested.
+
+"What's on now" (`lib/map/whats-on.ts`) is pure: given an instant and the club's IANA time zone
+it works out the local weekday and time with `Intl.DateTimeFormat`, whether the space is open
+(its own hours or the club's), the class running now, and the next one up to a week ahead. The
+page is static, so the component reads the clock only after hydration and refreshes it every
+minute; the server never renders a time-dependent value, which avoids hydration mismatches.
+
+"Add to my day" passes the space to the first-day planner through a small in-page channel
+(`lib/concierge/prefill.ts`), which adds it to the planner's message and focuses the box.
+
 ### Cost calculator
 
 The calculator is a client component over a pure module, `lib/calculator/calculate.ts`, so every
@@ -258,6 +281,9 @@ demo content, so CI needs no secrets.
   suite run against demo data with no credentials.
 - **Plain-text streaming with metadata in headers** for the FAQ, instead of a chat protocol,
   because the client needs to know the answer's status before reading it.
+- **An invented floor plan, stored as shapes.** Real plans aren't public and could be a
+  security or copyright risk; an illustrative plan in the same zone format shows the idea and is
+  editable in Studio. It is labelled illustrative on the page.
 - **Cost comparisons are shown, not claimed.** The typical prices are editable per market,
   labelled on the page as illustrative, and every assumption (each use counted once per visit,
   the joining fee spread over a year) is written out under the chart.

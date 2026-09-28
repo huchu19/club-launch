@@ -47,6 +47,13 @@ describe('floor plan geometry', () => {
     ])
   })
 
+  it('keeps a zone’s text label and adds its position separately', () => {
+    const [placed] = place([
+      { spaceId: 'pool', label: 'Pool', shape: 'rect' as const, x: 0, y: 0, w: 10, h: 10 },
+    ])
+    expect(placed).toMatchObject({ label: 'Pool', labelAt: { x: 5, y: 5 } })
+  })
+
   it('every seeded zone points at a real space and has valid geometry', () => {
     const club = demoClubs[0]!
     const ids = new Set(club.spaces.map((s) => s.id))

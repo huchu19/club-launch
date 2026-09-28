@@ -74,6 +74,7 @@ describe('GROQ queries over the seeded dataset', () => {
     expect(page.blocks.map((b) => b._type)).toEqual([
       'heroBlock',
       'facilitiesBlock',
+      'clubMapBlock',
       'conciergeBlock',
       'spaRecoveryBlock',
       'ratesBlock',
@@ -186,6 +187,10 @@ describe('GROQ queries over the seeded dataset', () => {
     expect(club.spaces.map((s) => s.id)).toContain('thermal-suite')
     expect(club.spaces.find((s) => s.id === 'workspace')?.openingHours).toHaveLength(7)
     expect(club.schedule.length).toBeGreaterThan(20)
+    expect(club.timeZone).toBe('Europe/London')
+    expect(club.clubMap?.floors.map((f) => f.name)).toEqual(['Ground floor', 'Lower ground floor'])
+    expect(club.clubMap?.floors[0]?.zones.find((z) => z.shape === 'polygon')?.points).toContain(',')
+    expect(club.clubMap?.floors[1]?.features[0]).toMatchObject({ kind: 'garden' })
     // Every class takes place in a space the club has.
     const ids = new Set(club.spaces.map((s) => s.id))
     expect(club.schedule.every((entry) => ids.has(entry.spaceId))).toBe(true)

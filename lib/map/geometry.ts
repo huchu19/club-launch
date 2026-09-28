@@ -45,13 +45,14 @@ export function labelPoint(shape: Shape, geometry: Geometry): { x: number; y: nu
   }
 }
 
-export type PlacedZone = MapZone & { geometry: Geometry; label: { x: number; y: number } }
-export type PlacedFeature = MapFeature & { geometry: Geometry; label: { x: number; y: number } }
+/** A shape with its parsed geometry and where its label sits (`labelAt`). */
+export type PlacedZone = MapZone & { geometry: Geometry; labelAt: { x: number; y: number } }
+export type PlacedFeature = MapFeature & { geometry: Geometry; labelAt: { x: number; y: number } }
 
 export function place<T extends Shape>(items: T[]) {
   return items.flatMap((item) => {
     const geometry = geometryOf(item)
-    return geometry ? [{ ...item, geometry, label: labelPoint(item, geometry) }] : []
+    return geometry ? [{ ...item, geometry, labelAt: labelPoint(item, geometry) }] : []
   })
 }
 
@@ -59,11 +60,13 @@ export function place<T extends Shape>(items: T[]) {
  * Arrow-key order: top to bottom, then left to right, by label position.
  * Labels within `rowTolerance` units vertically count as the same row.
  */
-export function readingOrder<T extends { label: { x: number; y: number } }>(
+export function readingOrder<T extends { labelAt: { x: number; y: number } }>(
   zones: T[],
   rowTolerance = 60,
 ): T[] {
   return [...zones].sort((a, b) =>
-    Math.abs(a.label.y - b.label.y) <= rowTolerance ? a.label.x - b.label.x : a.label.y - b.label.y,
+    Math.abs(a.labelAt.y - b.labelAt.y) <= rowTolerance
+      ? a.labelAt.x - b.labelAt.x
+      : a.labelAt.y - b.labelAt.y,
   )
 }

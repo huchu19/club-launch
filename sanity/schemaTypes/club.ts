@@ -46,6 +46,7 @@ export const club = defineType({
     { name: 'location', title: 'Location & hours' },
     { name: 'facilities', title: 'Facilities' },
     { name: 'spaces', title: 'Spaces & timetable' },
+    { name: 'map', title: 'Floor plan' },
     { name: 'facts', title: 'Facts (AI grounding)' },
     { name: 'seo', title: 'SEO' },
   ],
@@ -120,6 +121,14 @@ export const club = defineType({
       of: [openingHoursEntry],
     }),
     defineField({ name: 'phone', type: 'string', group: 'location' }),
+    defineField({
+      name: 'timeZone',
+      title: 'Time zone',
+      type: 'string',
+      group: 'location',
+      description: 'IANA name, e.g. Europe/London. Used for "what’s on now" and opening hours.',
+      initialValue: 'Europe/London',
+    }),
     defineField({
       name: 'facilities',
       type: 'array',
@@ -231,6 +240,181 @@ export const club = defineType({
             select: { day: 'day', time: 'time', name: 'name' },
             prepare: ({ day, time, name }) => ({ title: `${time} ${name}`, subtitle: day }),
           },
+        }),
+      ],
+    }),
+    defineField({
+      name: 'clubMap',
+      title: 'Floor plan',
+      type: 'object',
+      group: 'map',
+      description:
+        'An illustrative plan drawn as shapes, not a real architect’s drawing. Each zone links to a space by its id.',
+      fields: [
+        defineField({
+          name: 'viewBox',
+          title: 'Drawing size',
+          type: 'string',
+          description: '"0 0 width height", e.g. 0 0 1000 640.',
+          initialValue: '0 0 1000 640',
+          validation: (r) => r.regex(/^\d+ \d+ \d+ \d+$/, { name: 'viewBox' }),
+        }),
+        defineField({
+          name: 'floors',
+          type: 'array',
+          of: [
+            defineArrayMember({
+              type: 'object',
+              name: 'mapFloor',
+              fields: [
+                defineField({ name: 'name', type: 'string', validation: (r) => r.required() }),
+                defineField({
+                  name: 'zones',
+                  type: 'array',
+                  of: [
+                    defineArrayMember({
+                      type: 'object',
+                      name: 'mapZone',
+                      fields: [
+                        defineField({
+                          name: 'spaceId',
+                          title: 'Space ID',
+                          type: 'string',
+                          validation: (r) =>
+                            r.required().custom((value: string | undefined, context) => {
+                              const spaces = (context.document?.spaces ?? []) as SpaceValue[]
+                              return (
+                                !value ||
+                                spaces.some((s) => s.id === value) ||
+                                'Use the id of one of this club’s spaces.'
+                              )
+                            }),
+                        }),
+                        defineField({
+                          name: 'label',
+                          type: 'string',
+                          description: 'Defaults to the space’s name.',
+                        }),
+                        defineField({
+                          name: 'shape',
+                          type: 'string',
+                          options: { list: ['rect', 'polygon'], layout: 'radio' },
+                          initialValue: 'rect',
+                          validation: (r) => r.required(),
+                        }),
+                        defineField({
+                          name: 'x',
+                          type: 'number',
+                          hidden: ({ parent }) => parent?.shape !== 'rect',
+                        }),
+                        defineField({
+                          name: 'y',
+                          type: 'number',
+                          hidden: ({ parent }) => parent?.shape !== 'rect',
+                        }),
+                        defineField({
+                          name: 'w',
+                          title: 'Width',
+                          type: 'number',
+                          hidden: ({ parent }) => parent?.shape !== 'rect',
+                        }),
+                        defineField({
+                          name: 'h',
+                          title: 'Height',
+                          type: 'number',
+                          hidden: ({ parent }) => parent?.shape !== 'rect',
+                        }),
+                        defineField({
+                          name: 'points',
+                          type: 'string',
+                          description: 'Corners as "x,y x,y x,y …" in the map’s units.',
+                          hidden: ({ parent }) => parent?.shape !== 'polygon',
+                        }),
+                        defineField({
+                          name: 'labelX',
+                          title: 'Label x (optional)',
+                          type: 'number',
+                        }),
+                        defineField({
+                          name: 'labelY',
+                          title: 'Label y (optional)',
+                          type: 'number',
+                        }),
+                      ],
+                      preview: { select: { title: 'label', subtitle: 'spaceId' } },
+                    }),
+                  ],
+                }),
+                defineField({
+                  name: 'features',
+                  title: 'Decorative areas',
+                  type: 'array',
+                  of: [
+                    defineArrayMember({
+                      type: 'object',
+                      name: 'mapFeature',
+                      fields: [
+                        defineField({
+                          name: 'kind',
+                          type: 'string',
+                          options: { list: ['garden', 'entrance', 'other'] },
+                          validation: (r) => r.required(),
+                        }),
+                        defineField({ name: 'label', type: 'string' }),
+                        defineField({
+                          name: 'shape',
+                          type: 'string',
+                          options: { list: ['rect', 'polygon'], layout: 'radio' },
+                          initialValue: 'rect',
+                          validation: (r) => r.required(),
+                        }),
+                        defineField({
+                          name: 'x',
+                          type: 'number',
+                          hidden: ({ parent }) => parent?.shape !== 'rect',
+                        }),
+                        defineField({
+                          name: 'y',
+                          type: 'number',
+                          hidden: ({ parent }) => parent?.shape !== 'rect',
+                        }),
+                        defineField({
+                          name: 'w',
+                          title: 'Width',
+                          type: 'number',
+                          hidden: ({ parent }) => parent?.shape !== 'rect',
+                        }),
+                        defineField({
+                          name: 'h',
+                          title: 'Height',
+                          type: 'number',
+                          hidden: ({ parent }) => parent?.shape !== 'rect',
+                        }),
+                        defineField({
+                          name: 'points',
+                          type: 'string',
+                          description: 'Corners as "x,y x,y x,y …" in the map’s units.',
+                          hidden: ({ parent }) => parent?.shape !== 'polygon',
+                        }),
+                        defineField({
+                          name: 'labelX',
+                          title: 'Label x (optional)',
+                          type: 'number',
+                        }),
+                        defineField({
+                          name: 'labelY',
+                          title: 'Label y (optional)',
+                          type: 'number',
+                        }),
+                      ],
+                      preview: { select: { title: 'label', subtitle: 'kind' } },
+                    }),
+                  ],
+                }),
+              ],
+              preview: { select: { title: 'name' } },
+            }),
+          ],
         }),
       ],
     }),
