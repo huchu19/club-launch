@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { demoClubs } from '@/lib/content/demo-data'
-import { localMoment, spaceStatus } from './whats-on'
+import { localMoment } from '@/lib/time/local-time'
+import { spaceStatus } from './whats-on'
 
 const mayfair = demoClubs[0]!
 const space = (id: string) => mayfair.spaces.find((s) => s.id === id)!
@@ -16,6 +17,7 @@ describe('localMoment', () => {
       day: 'Wednesday',
       time: '07:20',
       minutes: 440,
+      hour: 7,
     })
     // In winter London is on UTC.
     expect(localMoment(new Date('2026-12-02T07:20:00Z'), 'Europe/London').time).toBe('07:20')

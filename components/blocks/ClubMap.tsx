@@ -12,7 +12,8 @@ import type {
   Space,
 } from '@/lib/content/types'
 import { place, readingOrder, type Geometry, type PlacedZone } from '@/lib/map/geometry'
-import { localMoment, spaceStatus, type SpaceStatus } from '@/lib/map/whats-on'
+import { spaceStatus, type SpaceStatus } from '@/lib/map/whats-on'
+import { localMoment } from '@/lib/time/local-time'
 
 export type ClubMapProps = {
   clubName: string

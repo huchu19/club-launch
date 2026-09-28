@@ -12,6 +12,8 @@ export function draftToBlocks(draft: DraftOutput): PageBlock[] {
       heading: draft.hero.heading,
       subheading: draft.hero.subheading,
       primaryCta: { label: draft.hero.ctaLabel, target: 'tour' },
+      // Time-of-day wording is left for editors to add.
+      periodVariants: [],
     },
     // No override: the page shows the club's own facilities list.
     { _type: 'facilitiesBlock', _key: arrayKey(), ...draft.facilities },

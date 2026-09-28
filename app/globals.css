@@ -21,6 +21,11 @@
   --color-accent: #9a4538; /* terracotta, used sparingly for small labels */
   --color-danger: #a3372b;
   --color-danger-wash: #f7e4dd;
+  /* Time-of-day tints for the hero (see lib/atmosphere); text stays AA on each. */
+  --color-tint-morning: #fbe9c6;
+  --color-tint-midday: #f8f1e5;
+  --color-tint-evening: #f5dfd2;
+  --color-tint-night: #e7eae3;
 
   --font-display: var(--font-bricolage), 'Helvetica Neue', system-ui, sans-serif;
   --font-sans: var(--font-inter), 'Avenir Next', system-ui, sans-serif;
@@ -79,6 +84,10 @@
       --color-accent: #e39a7d;
       --color-danger: #f08a7e;
       --color-danger-wash: #2a1714;
+      --color-tint-morning: #1b2314;
+      --color-tint-midday: #0c1410;
+      --color-tint-evening: #221610;
+      --color-tint-night: #070f0c;
     }
   }
 
@@ -98,6 +107,10 @@
     --color-accent: #e39a7d;
     --color-danger: #f08a7e;
     --color-danger-wash: #2a1714;
+    --color-tint-morning: #1b2314;
+    --color-tint-midday: #0c1410;
+    --color-tint-evening: #221610;
+    --color-tint-night: #070f0c;
   }
 
   html {

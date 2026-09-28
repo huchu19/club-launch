@@ -26,7 +26,17 @@ export function toSanityBlock(block: PageBlock, resolveImage: ImageResolver = no
   const image = (img?: ImageData) => (img ? resolveImage(img) : undefined)
   switch (block._type) {
     case 'heroBlock':
-      return { ...block, image: image(block.image) }
+      return {
+        ...block,
+        image: image(block.image),
+        periodVariants: block.periodVariants.length
+          ? block.periodVariants.map((variant) => ({
+              _key: variant.period,
+              _type: 'heroPeriodVariant',
+              ...variant,
+            }))
+          : undefined,
+      }
     case 'facilitiesBlock':
       return {
         ...block,

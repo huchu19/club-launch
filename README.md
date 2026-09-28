@@ -36,6 +36,10 @@ actually ask.
   for this day" attaches the plan to the tour request, so the team can shape the visit; the
   visitor's own words are never stored or shared. "Share my day" gives a read-only link to
   the plan (never indexed) with a generated social card in the site's type and colours.
+- **Time-of-day atmosphere.** The hero follows the club's own clock: morning, midday, evening
+  and night each get editor-written wording, a subtle tint, and a link to the part of the page
+  that suits that time (this morning's classes; spa and recovery in the evening). It is chosen
+  on the server, so there's no flash, and the page regenerates every 15 minutes to keep up.
 - **Explorable club map.** An illustrated two-floor plan: choose a space (mouse, touch or
   arrow keys) to see what it's for, its hours today, and what's on now and next in the club's
   own time zone, then "Add to my day" to hand it to the planner. A list view has the same
@@ -149,7 +153,7 @@ that `pnpm seed` writes. CI, e2e and local development without credentials use t
 |---|---|---|
 | Unit (Vitest) | Schemas, normalisation, grounding context, prompt fencing, redaction, rate limiter, CRM retry, drafter retry, number guard, publish rule, day-plan validator and retry, health caveats, cost calculation edge cases, "what's on now" across time zones and midnight, floor-plan geometry, JSON-LD, webhook signatures, API routes | `**/*.test.ts` |
 | Component (Storybook + Vitest browser) | Every component in light, dark and mobile, with edge cases and interaction tests; any axe violation fails the build | `**/*.stories.tsx` |
-| End to end (Playwright + axe) | Keyboard-only tour booking; keyboard-only day planning and booking a tour for that day; the cost calculator with real arrow-key presses; the club map by keyboard and touch, with no layout shift and reduced motion; shared day pages (plan only, noindex, the social image route) and the copy-link fallback; no sideways scrolling on a phone; health caveats and refusals; FAQ streaming, session-only pending answers, cache hits, refusals and the quota fallback; the drafter; admin auth | `e2e/` |
+| End to end (Playwright + axe) | Keyboard-only tour booking; keyboard-only day planning and booking a tour for that day; the cost calculator with real arrow-key presses; the club map by keyboard and touch, with no layout shift and reduced motion; the time-of-day hero with no hydration warnings; shared day pages (plan only, noindex, the social image route) and the copy-link fallback; no sideways scrolling on a phone; health caveats and refusals; FAQ streaming, session-only pending answers, cache hits, refusals and the quota fallback; the drafter; admin auth | `e2e/` |
 
 All AI calls in CI and e2e use `AI_MOCK=1`: deterministic fixtures that still run through the real
 AI SDK code (`MockLanguageModelV4`). A question or day-planning message containing "quota"

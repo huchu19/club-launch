@@ -1,32 +1,15 @@
-import type { OpeningHours, ScheduleEntry, Space, Weekday } from '@/lib/content/types'
+import type { OpeningHours, ScheduleEntry, Space } from '@/lib/content/types'
 import { weekdays } from '@/lib/content/types'
-
-// "What's on now" for a space, in the club's own time zone. Pure: the current
-// instant is passed in, so every case (time zones, clock changes, midnight) is
-// unit-tested. Classes don't run past midnight in the timetable, so a class
-// belongs to the day it starts on.
-
-export const DEFAULT_TIME_ZONE = 'Europe/London'
-
-export type LocalMoment = { day: Weekday; time: string; minutes: number }
+import type { LocalMoment } from '@/lib/time/local-time'
 
 const toMinutes = (time: string) => Number(time.slice(0, 2)) * 60 + Number(time.slice(3, 5))
 const toTime = (total: number) =>
   `${String(Math.floor(total / 60) % 24).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`
 
-/** The weekday and wall-clock time at `now` in `timeZone`. */
-export function localMoment(now: Date, timeZone: string = DEFAULT_TIME_ZONE): LocalMoment {
-  const parts = new Intl.DateTimeFormat('en-GB', {
-    timeZone,
-    weekday: 'long',
-    hour: '2-digit',
-    minute: '2-digit',
-    hourCycle: 'h23',
-  }).formatToParts(now)
-  const part = (type: string) => parts.find((p) => p.type === type)?.value ?? ''
-  const time = `${part('hour')}:${part('minute')}`
-  return { day: part('weekday') as Weekday, time, minutes: toMinutes(time) }
-}
+// "What's on now" for a space, in the club's own time zone. Pure: the current
+// instant is passed in, so every case (time zones, clock changes, midnight) is
+// unit-tested. Classes don't run past midnight in the timetable, so a class
+// belongs to the day it starts on.
 
 export type ScheduledClass = ScheduleEntry & { endsAt: string }
 

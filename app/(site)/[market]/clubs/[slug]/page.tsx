@@ -3,6 +3,7 @@ import { draftMode } from 'next/headers'
 import { notFound } from 'next/navigation'
 import { BlockRenderer } from '@/components/blocks/BlockRenderer'
 import { JsonLd } from '@/components/seo/JsonLd'
+import { periodAt } from '@/lib/atmosphere/period'
 import { getContentRepository } from '@/lib/content'
 import { clubPath } from '@/lib/content/types'
 import { healthClubJsonLd } from '@/lib/seo/jsonld'
@@ -10,6 +11,10 @@ import { clubPageDescription, clubPageImage, clubPageMetadata } from '@/lib/seo/
 import { absoluteUrl } from '@/lib/site'
 
 type Params = { market: string; slug: string }
+
+// Re-render at least every 15 minutes so the time-of-day hero follows the club's clock.
+// Content edits still go live at once through the publish webhook.
+export const revalidate = 900
 type Props = { params: Promise<Params> }
 
 async function loadPage({ market, slug }: Params) {
@@ -42,7 +47,7 @@ export default async function ClubPage({ params }: Props) {
           description: clubPageDescription(page),
         })}
       />
-      <BlockRenderer page={page} />
+      <BlockRenderer page={page} period={periodAt(new Date(), page.club.timeZone)} />
     </>
   )
 }
