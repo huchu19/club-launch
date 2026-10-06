@@ -379,6 +379,17 @@ structured-output handling as production. CI runs three jobs on every push and p
 typecheck, unit tests and build; Storybook tests and build; end-to-end), all with `AI_MOCK=1` and
 demo content, so CI needs no secrets.
 
+## Demo recording
+
+`scripts/demo/` records the two-minute product walkthrough with Playwright against a real
+deployment: `pnpm demo:login` saves a Studio session once, `pnpm demo:record` drives the club
+page, the drafter, the Studio and the FAQ with a visible cursor and on-screen captions, and
+`pnpm demo:build` makes the MP4. Every document a take creates (day plan, pending FAQ answer,
+drafted page) carries a hidden `demo: true` marker and is listed in `.demo/created.json`, so
+`pnpm demo:reset` removes exactly those and leaves the drafted club without a page again. It runs
+against the real model, not `AI_MOCK`, because the video has to show genuine output. See
+[scripts/demo/README.md](../scripts/demo/README.md).
+
 ## Key decisions and trade-offs
 
 - **One block, one schema type, one component, one story.** This limits what editors can do,

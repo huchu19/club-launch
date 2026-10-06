@@ -55,6 +55,19 @@ export const seoField = defineField({
   ],
 })
 
+/**
+ * Marks content created by the automated demo recording
+ * (scripts/demo/record.ts), so `pnpm demo:reset` can remove exactly that and
+ * nothing else. Hidden and read-only: editors never see or set it.
+ */
+export const demoField = defineField({
+  name: 'demo',
+  title: 'Created by the demo recording',
+  type: 'boolean',
+  readOnly: true,
+  hidden: true,
+})
+
 export const facilityCategoryOptions = [
   { title: 'Gym', value: 'gym' },
   { title: 'Spa', value: 'spa' },

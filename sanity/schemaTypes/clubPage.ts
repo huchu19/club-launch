@@ -4,7 +4,7 @@ import { ClubPageInput } from '../components/ClubPageInput'
 import { readinessRule } from '../readiness-rule'
 import { placeholderRule } from '../validation'
 import { blockTypeNames } from './blocks'
-import { seoField } from './fields'
+import { demoField, seoField } from './fields'
 
 export const clubPage = defineType({
   name: 'clubPage',
@@ -30,6 +30,7 @@ export const clubPage = defineType({
       validation: (r) => r.min(1),
     }),
     seoField,
+    demoField,
   ],
   preview: {
     select: { title: 'title', club: 'club.name' },
