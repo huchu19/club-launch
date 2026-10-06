@@ -1,5 +1,6 @@
 import { CalendarIcon } from '@sanity/icons/Calendar'
 import { defineArrayMember, defineField, defineType } from 'sanity'
+import { demoField } from './fields'
 
 // Written by the first-day planner. Holds the structured plan only: the
 // visitor's message is never stored. Read-only in the Studio.
@@ -44,6 +45,7 @@ export const dayPlan = defineType({
       of: [defineArrayMember({ type: 'string' })],
     }),
     defineField({ name: 'createdAt', type: 'datetime' }),
+    demoField,
   ],
   orderings: [
     {

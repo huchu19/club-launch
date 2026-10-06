@@ -254,6 +254,7 @@ pnpm seed --update  # only adds missing documents, fields and blocks; safe on a 
 | `pnpm storybook` / `pnpm test-storybook` / `pnpm build-storybook` | Storybook, its component and a11y tests, static build |
 | `pnpm e2e` | Builds, starts with `AI_MOCK=1` and demo content, runs Playwright |
 | `pnpm build` / `pnpm start` | Production build and server |
+| `pnpm demo:login` / `pnpm demo:reset` / `pnpm demo:record` / `pnpm demo:build` | Records the two-minute walkthrough against a deployment and removes what it created ([scripts/demo](scripts/demo/README.md)) |
 
 Environment variables are listed in [`.env.example`](.env.example).
 

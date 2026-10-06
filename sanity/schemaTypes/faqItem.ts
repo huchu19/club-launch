@@ -1,5 +1,6 @@
 import { HelpCircleIcon } from '@sanity/icons/HelpCircle'
 import { defineField, defineType } from 'sanity'
+import { demoField } from './fields'
 
 export const faqItem = defineType({
   name: 'faqItem',
@@ -56,6 +57,7 @@ export const faqItem = defineType({
       readOnly: true,
       hidden: true,
     }),
+    demoField,
   ],
   orderings: [
     { title: 'Most asked', name: 'askedDesc', by: [{ field: 'askedCount', direction: 'desc' }] },

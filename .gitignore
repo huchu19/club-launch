@@ -29,6 +29,9 @@ __screenshots__/
 .DS_Store
 *.log
 
+# demo recording: saved session, raw video and the finished cut
+.demo/
+
 # local working notes and editor tooling settings
 .agent/
 .claude/

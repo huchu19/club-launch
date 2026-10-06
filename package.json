@@ -22,6 +22,10 @@
     "build-storybook": "storybook build",
     "test-storybook": "vitest run --project storybook",
     "seed": "tsx scripts/seed.ts",
+    "demo:login": "tsx scripts/demo/login.ts",
+    "demo:reset": "tsx scripts/demo/reset.ts",
+    "demo:record": "tsx scripts/demo/record.ts",
+    "demo:build": "tsx scripts/demo/build.ts",
     "check:facts": "tsx scripts/check-single-source.ts"
   },
   "dependencies": {
