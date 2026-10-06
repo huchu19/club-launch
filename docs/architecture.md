@@ -362,7 +362,7 @@ validation errors, so a draft cannot go live until every placeholder is replaced
 | Prompt injection | Visitor text is fenced in tags with `<` and `>` stripped, and the instructions treat it strictly as a question. Output is structured and validated, so injected instructions cannot change what gets saved. |
 | Personal data | Tour submissions never go to the model. Emails and phone numbers are redacted from questions before the model or CMS sees them. The concierge stores only the structured plan. |
 | Malformed output | zod on every response, one retry, then a clear error. Day plans are also checked against the club's real spaces, hours and timetable, with the problems fed back for the retry. |
-| Quota exhaustion and outages | The FAQ waits for the first token before committing to a stream, so failures become a clean fallback. SDK retries are off, since quota errors don't clear in seconds. The concierge retries once after 1.5 s when the provider reports a temporary overload (5xx), but never on quota errors. |
+| Quota exhaustion and outages | The FAQ waits for the first token before committing to a stream, so failures become a clean fallback. SDK retries are off, since quota errors don't clear in seconds. The concierge retries once after 1.5 s when the provider reports a temporary overload (5xx), but never on quota errors. The drafter retries an overload with backoff (up to 2 extra tries), and reports a still-overloaded or rate-limited provider as a distinct, clear error from a model answer that failed validation. |
 | Cost | Free tiers only. Rate limits on every AI route; repeated questions are served from the CMS without a model call. |
 
 ## Testing and CI

@@ -1,3 +1,4 @@
+import { APICallError } from 'ai'
 import { MockLanguageModelV4 } from 'ai/test'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createMockDrafterModel, mockDraftFor, userText } from '@/lib/ai/mock-models'
@@ -12,6 +13,7 @@ import {
   describePath,
   draftClubPage,
   DraftGenerationError,
+  DraftUnavailableError,
   generateDraft,
   studioEditPath,
 } from './service'
@@ -73,6 +75,62 @@ describe('generateDraft', () => {
     expect(prompt).not.toContain(moorgate.phone)
     expect(prompt).not.toContain('Linden Mayfair')
     expect(prompt).toContain('Tone: premium')
+  })
+
+  const overloaded = (statusCode: number) =>
+    new APICallError({
+      message: 'This model is currently experiencing high demand.',
+      url: 'mock://gemini',
+      requestBodyValues: {},
+      statusCode,
+    })
+
+  it('retries an overloaded model with backoff, distinctly from a bad answer', async () => {
+    const good = JSON.stringify(mockDraftFor(buildDrafterPrompt(moorgate, brief, 'calm')))
+    let calls = 0
+    const model = new MockLanguageModelV4({
+      doGenerate: async () => {
+        if (++calls <= 2) throw overloaded(503)
+        return reply(good)
+      },
+    })
+    const { draft, attempts } = await generateDraft(
+      { club: moorgate, brief, tone: 'calm' },
+      model,
+      { overloadRetries: 2, overloadBaseDelayMs: 1 },
+    )
+    expect(attempts).toBe(1) // still the first outer attempt: the provider just took 3 tries to answer
+    expect(calls).toBe(3)
+    expect(draftOutputSchema.safeParse(draft).success).toBe(true)
+  })
+
+  it('reports a still-overloaded provider distinctly from a validation failure', async () => {
+    const model = new MockLanguageModelV4({
+      doGenerate: async () => Promise.reject(overloaded(503)),
+    })
+    const error = await generateDraft({ club: moorgate, brief, tone: 'calm' }, model, {
+      overloadRetries: 2,
+      overloadBaseDelayMs: 1,
+    }).catch((e: unknown) => e)
+    expect(error).toBeInstanceOf(DraftUnavailableError)
+    expect(error).not.toBeInstanceOf(DraftGenerationError)
+    expect((error as Error).message).toMatch(/busy right now/)
+    // 1 initial try + 2 overload retries, and never a second outer attempt.
+    expect(model.doGenerateCalls).toHaveLength(3)
+  })
+
+  it('reports a rate-limited provider distinctly, without retrying', async () => {
+    const model = new MockLanguageModelV4({
+      doGenerate: async () => Promise.reject(overloaded(429)),
+    })
+    const error = await generateDraft({ club: moorgate, brief, tone: 'calm' }, model, {
+      overloadRetries: 2,
+      overloadBaseDelayMs: 1,
+    }).catch((e: unknown) => e)
+    expect(error).toBeInstanceOf(DraftUnavailableError)
+    expect(error).not.toBeInstanceOf(DraftGenerationError)
+    expect((error as Error).message).toMatch(/usage limit/)
+    expect(model.doGenerateCalls).toHaveLength(1)
   })
 })
 

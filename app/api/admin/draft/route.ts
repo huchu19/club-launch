@@ -8,6 +8,7 @@ import {
   ClubNotFoundError,
   draftClubPage,
   DraftGenerationError,
+  DraftUnavailableError,
 } from '@/lib/drafter/service'
 import { createRateLimiter } from '@/lib/rate-limit'
 import { clientIp, PayloadTooLargeError, readJson } from '@/lib/request'
@@ -63,6 +64,11 @@ export async function POST(request: NextRequest) {
     }
     if (error instanceof DraftGenerationError) {
       return NextResponse.json({ error: error.message }, { status: 502 })
+    }
+    // The provider itself was overloaded or rate-limited, not a bad answer:
+    // 503 (temporary, try again) rather than 502 (the model answered badly).
+    if (error instanceof DraftUnavailableError) {
+      return NextResponse.json({ error: error.message }, { status: 503 })
     }
     console.error('[drafter] unexpected error:', error instanceof Error ? error.message : error)
     return NextResponse.json(
